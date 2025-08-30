@@ -29,6 +29,7 @@ import (
 	"sort"
 	"strings"
 
+	"helm.sh/helm/v4/pkg/cli"
 	release "helm.sh/helm/v4/pkg/release/v1"
 
 	"github.com/spf13/cobra"
@@ -48,7 +49,7 @@ faked locally. Additionally, none of the server-side testing of chart validity
 (e.g. whether an API is supported) is done.
 `
 
-func newTemplateCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
+func newTemplateCmd(settings *cli.EnvSettings, cfg *action.Configuration, out io.Writer) *cobra.Command {
 	var validate bool
 	var includeCrds bool
 	var skipTests bool
@@ -64,7 +65,7 @@ func newTemplateCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 		Long:  templateDesc,
 		Args:  require.MinimumNArgs(1),
 		ValidArgsFunction: func(_ *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			return compInstall(args, toComplete, client)
+			return compInstall(settings, args, toComplete, client)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if kubeVersion != "" {
@@ -75,8 +76,8 @@ func newTemplateCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 				client.KubeVersion = parsedKubeVersion
 			}
 
-			registryClient, err := newRegistryClient(client.CertFile, client.KeyFile, client.CaFile,
-				client.InsecureSkipTLSVerify, client.PlainHTTP, client.Username, client.Password)
+			registryClient, err := newRegistryClient(settings, client.CertFile, client.KeyFile, client.CaFile,
+				client.InsecureSkipTLSverify, client.PlainHTTP, client.Username, client.Password)
 			if err != nil {
 				return fmt.Errorf("missing registry client: %w", err)
 			}
@@ -95,7 +96,7 @@ func newTemplateCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 			client.Replace = true // Skip the name check
 			client.APIVersions = common.VersionSet(extraAPIs)
 			client.IncludeCRDs = includeCrds
-			rel, err := runInstall(args, client, valueOpts, out)
+			rel, err := runInstall(settings, args, client, valueOpts, out)
 
 			if err != nil && !settings.Debug {
 				if rel != nil {
@@ -193,7 +194,7 @@ func newTemplateCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 	}
 
 	f := cmd.Flags()
-	addInstallFlags(cmd, f, client, valueOpts)
+	addInstallFlags(settings, cmd, f, client, valueOpts)
 	f.StringArrayVarP(&showFiles, "show-only", "s", []string{}, "only show manifests rendered from the given templates")
 	f.StringVar(&client.OutputDir, "output-dir", "", "writes the executed templates to files in output-dir instead of stdout")
 	f.BoolVar(&validate, "validate", false, "deprecated")

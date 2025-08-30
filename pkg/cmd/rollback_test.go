@@ -22,6 +22,7 @@ import (
 	"testing"
 
 	chart "helm.sh/helm/v4/pkg/chart/v2"
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/release/common"
 	release "helm.sh/helm/v4/pkg/release/v1"
 )
@@ -147,12 +148,13 @@ func TestRollbackWithLabels(t *testing.T) {
 		},
 	}
 	storage := storageFixture()
+	settings := cli.New()
 	for _, rel := range rels {
 		if err := storage.Create(rel); err != nil {
 			t.Fatal(err)
 		}
 	}
-	_, _, err := executeActionCommandC(storage, fmt.Sprintf("rollback %s 1", releaseName))
+	_, _, err := executeActionCommandC(settings, storage, fmt.Sprintf("rollback %s 1", releaseName))
 	if err != nil {
 		t.Errorf("unexpected error, got '%v'", err)
 	}

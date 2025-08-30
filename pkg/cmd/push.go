@@ -23,6 +23,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"helm.sh/helm/v4/pkg/action"
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/cmd/require"
 	"helm.sh/helm/v4/pkg/pusher"
 )
@@ -44,7 +45,7 @@ type registryPushOptions struct {
 	username              string
 }
 
-func newPushCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
+func newPushCmd(settings *cli.EnvSettings, cfg *action.Configuration, out io.Writer) *cobra.Command {
 	o := &registryPushOptions{}
 
 	cmd := &cobra.Command{
@@ -71,7 +72,7 @@ func newPushCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 		},
 		RunE: func(_ *cobra.Command, args []string) error {
 			registryClient, err := newRegistryClient(
-				o.certFile, o.keyFile, o.caFile, o.insecureSkipTLSVerify, o.plainHTTP, o.username, o.password,
+				settings, o.certFile, o.keyFile, o.caFile, o.insecureSkipTLSverify, o.plainHTTP, o.username, o.password,
 			)
 
 			if err != nil {

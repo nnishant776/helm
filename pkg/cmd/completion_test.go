@@ -22,6 +22,7 @@ import (
 	"testing"
 
 	chart "helm.sh/helm/v4/pkg/chart/v2"
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/release/common"
 	release "helm.sh/helm/v4/pkg/release/v1"
 )
@@ -30,6 +31,7 @@ import (
 func checkFileCompletion(t *testing.T, cmdName string, shouldBePerformed bool) {
 	t.Helper()
 	storage := storageFixture()
+	settings := cli.New()
 	storage.Create(&release.Release{
 		Name: "myrelease",
 		Info: &release.Info{Status: common.StatusDeployed},
@@ -43,7 +45,7 @@ func checkFileCompletion(t *testing.T, cmdName string, shouldBePerformed bool) {
 	})
 
 	testcmd := fmt.Sprintf("__complete %s ''", cmdName)
-	_, out, err := executeActionCommandC(storage, testcmd)
+	_, out, err := executeActionCommandC(settings, storage, testcmd)
 	if err != nil {
 		t.Errorf("unexpected error, %s", err)
 	}

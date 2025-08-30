@@ -24,6 +24,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"helm.sh/helm/v4/pkg/action"
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/cmd/require"
 	"helm.sh/helm/v4/pkg/release"
 )
@@ -36,7 +37,7 @@ were generated from this release's chart(s). If a chart is dependent on other
 charts, those resources will also be included in the manifest.
 `
 
-func newGetManifestCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
+func newGetManifestCmd(settings *cli.EnvSettings, cfg *action.Configuration, out io.Writer) *cobra.Command {
 	client := action.NewGet(cfg)
 
 	cmd := &cobra.Command{
@@ -48,7 +49,7 @@ func newGetManifestCmd(cfg *action.Configuration, out io.Writer) *cobra.Command 
 			if len(args) != 0 {
 				return noMoreArgsComp()
 			}
-			return compListReleases(toComplete, args, cfg)
+			return compListReleases(settings, toComplete, args, cfg)
 		},
 		RunE: func(_ *cobra.Command, args []string) error {
 			res, err := client.Run(args[0])

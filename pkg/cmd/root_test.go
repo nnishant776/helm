@@ -25,13 +25,12 @@ import (
 
 	"helm.sh/helm/v4/internal/test/ensure"
 	"helm.sh/helm/v4/pkg/action"
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/helmpath"
 	"helm.sh/helm/v4/pkg/helmpath/xdg"
 )
 
 func TestRootCmd(t *testing.T) {
-	defer resetEnv()()
-
 	tests := []struct {
 		name, args, cachePath, configPath, dataPath string
 		envvars                                     map[string]string
@@ -81,12 +80,13 @@ func TestRootCmd(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ensure.HelmHome(t)
+			settings := cli.New()
 
 			for k, v := range tt.envvars {
 				t.Setenv(k, v)
 			}
 
-			if _, _, err := executeActionCommand(tt.args); err != nil {
+			if _, _, err := executeActionCommand(settings, tt.args); err != nil {
 				t.Fatalf("unexpected error: %s", err)
 			}
 
@@ -118,7 +118,8 @@ func TestRootCmd(t *testing.T) {
 }
 
 func TestUnknownSubCmd(t *testing.T) {
-	_, _, err := executeActionCommand("foobar")
+	settings := cli.New()
+	_, _, err := executeActionCommand(settings, "foobar")
 
 	if err == nil || err.Error() != `unknown command "foobar" for "helm"` {
 		t.Errorf("Expect unknown command error, got %q", err)

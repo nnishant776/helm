@@ -26,6 +26,7 @@ import (
 	"helm.sh/helm/v4/internal/test/ensure"
 	chart "helm.sh/helm/v4/pkg/chart/v2"
 	"helm.sh/helm/v4/pkg/chart/v2/loader"
+	"helm.sh/helm/v4/pkg/cli"
 )
 
 func TestPackage(t *testing.T) {
@@ -113,6 +114,7 @@ func TestPackage(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Chdir(t.TempDir())
 			ensure.HelmHome(t)
+			settings := cli.New()
 
 			if err := os.MkdirAll("toot", 0o777); err != nil {
 				t.Fatal(err)
@@ -139,7 +141,7 @@ func TestPackage(t *testing.T) {
 					cmd = append(cmd, fmt.Sprintf("--%s=%s", k, v))
 				}
 			}
-			_, _, err = executeActionCommand(strings.Join(cmd, " "))
+			_, _, err = executeActionCommand(settings, strings.Join(cmd, " "))
 			if err != nil {
 				if tt.err && re.MatchString(err.Error()) {
 					return
@@ -171,8 +173,9 @@ func TestSetAppVersion(t *testing.T) {
 	expectedAppVersion := "app-version-foo"
 	chartToPackage := "testdata/testcharts/alpine"
 	dir := t.TempDir()
+	settings := cli.New()
 	cmd := fmt.Sprintf("package %s --destination=%s --app-version=%s", chartToPackage, dir, expectedAppVersion)
-	_, output, err := executeActionCommand(cmd)
+	_, output, err := executeActionCommand(settings, cmd)
 	if err != nil {
 		t.Logf("Output: %s", output)
 		t.Fatal(err)
