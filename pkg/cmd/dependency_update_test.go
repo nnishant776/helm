@@ -27,6 +27,7 @@ import (
 	"helm.sh/helm/v4/internal/test/ensure"
 	chart "helm.sh/helm/v4/pkg/chart/v2"
 	chartutil "helm.sh/helm/v4/pkg/chart/v2/util"
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/helmpath"
 	"helm.sh/helm/v4/pkg/provenance"
 	"helm.sh/helm/v4/pkg/repo"
@@ -38,6 +39,7 @@ func TestDependencyUpdateCmd(t *testing.T) {
 		t,
 		repotest.WithChartSourceGlob("testdata/testcharts/*.tgz"),
 	)
+	settings := cli.New()
 	defer srv.Stop()
 	t.Logf("Listening on directory %s", srv.Root())
 
@@ -70,7 +72,7 @@ func TestDependencyUpdateCmd(t *testing.T) {
 	}
 
 	_, out, err := executeActionCommand(
-		fmt.Sprintf("dependency update '%s' --repository-config %s --repository-cache %s --content-cache %s --plain-http", dir(chartname), dir("repositories.yaml"), dir(), contentCache),
+		settings, fmt.Sprintf("dependency update '%s' --repository-config %s --repository-cache %s --content-cache %s --plain-http", dir(chartname), dir("repositories.yaml"), dir(), contentCache),
 	)
 	if err != nil {
 		t.Logf("Output: %s", out)
@@ -113,7 +115,7 @@ func TestDependencyUpdateCmd(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, out, err = executeActionCommand(fmt.Sprintf("dependency update '%s' --repository-config %s --repository-cache %s --content-cache %s --plain-http", dir(chartname), dir("repositories.yaml"), dir(), contentCache))
+	_, out, err = executeActionCommand(settings, fmt.Sprintf("dependency update '%s' --repository-config %s --repository-cache %s --content-cache %s --plain-http", dir(chartname), dir("repositories.yaml"), dir(), contentCache))
 	if err != nil {
 		t.Logf("Output: %s", out)
 		t.Fatal(err)
@@ -140,7 +142,7 @@ func TestDependencyUpdateCmd(t *testing.T) {
 		dir(),
 		dir(),
 		contentCache)
-	_, out, err = executeActionCommand(cmd)
+	_, out, err = executeActionCommand(settings, cmd)
 	if err != nil {
 		t.Logf("Output: %s", out)
 		t.Fatal(err)
@@ -152,8 +154,8 @@ func TestDependencyUpdateCmd(t *testing.T) {
 }
 
 func TestDependencyUpdateCmd_DoNotDeleteOldChartsOnError(t *testing.T) {
-	defer resetEnv()()
 	ensure.HelmHome(t)
+	settings := cli.New()
 
 	srv := repotest.NewTempServer(
 		t,
@@ -173,7 +175,7 @@ func TestDependencyUpdateCmd_DoNotDeleteOldChartsOnError(t *testing.T) {
 	}
 	createTestingChart(t, dir(), chartname, srv.URL())
 
-	_, output, err := executeActionCommand(fmt.Sprintf("dependency update %s --repository-config %s --repository-cache %s --plain-http", dir(chartname), dir("repositories.yaml"), dir()))
+	_, output, err := executeActionCommand(settings, fmt.Sprintf("dependency update %s --repository-config %s --repository-cache %s --plain-http", dir(chartname), dir("repositories.yaml"), dir()))
 	if err != nil {
 		t.Logf("Output: %s", output)
 		t.Fatal(err)
@@ -183,7 +185,7 @@ func TestDependencyUpdateCmd_DoNotDeleteOldChartsOnError(t *testing.T) {
 	srv.Stop()
 	contentCache := t.TempDir()
 
-	_, output, err = executeActionCommand(fmt.Sprintf("dependency update %s --repository-config %s --repository-cache %s --content-cache %s --plain-http", dir(chartname), dir("repositories.yaml"), dir(), contentCache))
+	_, output, err = executeActionCommand(settings, fmt.Sprintf("dependency update %s --repository-config %s --repository-cache %s --content-cache %s --plain-http", dir(chartname), dir("repositories.yaml"), dir(), contentCache))
 	if err == nil {
 		t.Logf("Output: %s", output)
 		t.Fatal("Expected error, got nil")
@@ -214,6 +216,7 @@ func TestDependencyUpdateCmd_DoNotDeleteOldChartsOnError(t *testing.T) {
 
 func TestDependencyUpdateCmd_WithRepoThatWasNotAdded(t *testing.T) {
 	srv := setupMockRepoServer(t)
+	settings := cli.New()
 	srvForUnmanagedRepo := setupMockRepoServer(t)
 	defer srv.Stop()
 	defer srvForUnmanagedRepo.Stop()
@@ -238,7 +241,7 @@ func TestDependencyUpdateCmd_WithRepoThatWasNotAdded(t *testing.T) {
 	contentCache := t.TempDir()
 
 	_, out, err := executeActionCommand(
-		fmt.Sprintf("dependency update '%s' --repository-config %s --repository-cache %s --content-cache %s", dir(chartname),
+		settings, fmt.Sprintf("dependency update '%s' --repository-config %s --repository-cache %s --content-cache %s", dir(chartname),
 			dir("repositories.yaml"), dir(), contentCache),
 	)
 

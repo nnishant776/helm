@@ -29,6 +29,7 @@ import (
 
 	"sigs.k8s.io/yaml"
 
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/helmpath"
 	"helm.sh/helm/v4/pkg/helmpath/xdg"
 	"helm.sh/helm/v4/pkg/repo"
@@ -98,6 +99,7 @@ func TestRepoAdd(t *testing.T) {
 		url:         ts.URL(),
 		forceUpdate: false,
 		repoFile:    repoFile,
+		settings:    cli.New(),
 	}
 	t.Setenv(xdg.CacheHomeEnvVar, rootDir)
 
@@ -140,7 +142,6 @@ func TestRepoAddCheckLegalName(t *testing.T) {
 		repotest.WithChartSourceGlob("testdata/testserver/*.*"),
 	)
 	defer ts.Stop()
-	defer resetEnv()()
 
 	const testRepoName = "test-hub/test-name"
 
@@ -198,6 +199,8 @@ func repoAddConcurrent(t *testing.T, testName, repoFile string) {
 	)
 	defer ts.Stop()
 
+	settings := cli.New()
+
 	var wg sync.WaitGroup
 	wg.Add(3)
 	for i := 0; i < 3; i++ {
@@ -208,6 +211,7 @@ func repoAddConcurrent(t *testing.T, testName, repoFile string) {
 				url:         ts.URL(),
 				forceUpdate: false,
 				repoFile:    repoFile,
+				settings:    settings,
 			}
 			if err := o.run(io.Discard); err != nil {
 				t.Error(err)
@@ -249,7 +253,7 @@ func TestRepoAddWithPasswordFromStdin(t *testing.T) {
 	)
 	defer srv.Stop()
 
-	defer resetEnv()()
+	settings := cli.New()
 
 	in, err := os.Open("testdata/password")
 	if err != nil {
@@ -265,7 +269,7 @@ func TestRepoAddWithPasswordFromStdin(t *testing.T) {
 	const username = "username"
 	cmd := fmt.Sprintf("repo add %s %s --repository-config %s --repository-cache %s --username %s --password-stdin", testName, srv.URL(), repoFile, tmpdir, username)
 	var result string
-	_, result, err = executeActionCommandStdinC(store, in, cmd)
+	_, result, err = executeActionCommandStdinC(settings, store, in, cmd)
 	if err != nil {
 		t.Errorf("unexpected error, got '%v'", err)
 	}

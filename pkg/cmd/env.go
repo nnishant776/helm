@@ -23,6 +23,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/cmd/require"
 )
 
@@ -30,7 +31,7 @@ var envHelp = `
 Env prints out all the environment information in use by Helm.
 `
 
-func newEnvCmd(out io.Writer) *cobra.Command {
+func newEnvCmd(settings *cli.EnvSettings, out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "env",
 		Short: "helm client environment information",
@@ -38,7 +39,7 @@ func newEnvCmd(out io.Writer) *cobra.Command {
 		Args:  require.MaximumNArgs(1),
 		ValidArgsFunction: func(_ *cobra.Command, args []string, _ string) ([]string, cobra.ShellCompDirective) {
 			if len(args) == 0 {
-				keys := getSortedEnvVarKeys()
+				keys := getSortedEnvVarKeys(settings)
 				return keys, cobra.ShellCompDirectiveNoFileComp
 			}
 
@@ -50,7 +51,7 @@ func newEnvCmd(out io.Writer) *cobra.Command {
 			if len(args) == 0 {
 				// Sort the variables by alphabetical order.
 				// This allows for a constant output across calls to 'helm env'.
-				keys := getSortedEnvVarKeys()
+				keys := getSortedEnvVarKeys(settings)
 
 				for _, k := range keys {
 					fmt.Fprintf(out, "%s=\"%s\"\n", k, envVars[k])
@@ -63,7 +64,7 @@ func newEnvCmd(out io.Writer) *cobra.Command {
 	return cmd
 }
 
-func getSortedEnvVarKeys() []string {
+func getSortedEnvVarKeys(settings *cli.EnvSettings) []string {
 	envVars := settings.EnvVars()
 
 	var keys []string

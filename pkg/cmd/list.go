@@ -28,6 +28,7 @@ import (
 
 	coloroutput "helm.sh/helm/v4/internal/cli/output"
 	"helm.sh/helm/v4/pkg/action"
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/cli/output"
 	"helm.sh/helm/v4/pkg/cmd/require"
 	release "helm.sh/helm/v4/pkg/release/v1"
@@ -60,7 +61,7 @@ server's default, which may be much higher than 256. Pairing the '--max'
 flag with the '--offset' flag allows you to page through results.
 `
 
-func newListCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
+func newListCmd(settings *cli.EnvSettings, cfg *action.Configuration, out io.Writer) *cobra.Command {
 	client := action.NewList(cfg)
 	var outfmt output.Format
 
@@ -248,7 +249,7 @@ func filterReleases(releases []*release.Release, ignoredReleaseNames []string) [
 }
 
 // Provide dynamic auto-completion for release names
-func compListReleases(toComplete string, ignoredReleaseNames []string, cfg *action.Configuration) ([]string, cobra.ShellCompDirective) {
+func compListReleases(settings *cli.EnvSettings, toComplete string, ignoredReleaseNames []string, cfg *action.Configuration) ([]string, cobra.ShellCompDirective) {
 	cobra.CompDebugln(fmt.Sprintf("compListReleases with toComplete %s", toComplete), settings.Debug)
 
 	client := action.NewList(cfg)

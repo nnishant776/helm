@@ -31,6 +31,7 @@ import (
 
 	"helm.sh/helm/v4/pkg/action"
 	"helm.sh/helm/v4/pkg/chart/v2/loader"
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/cli/output"
 	"helm.sh/helm/v4/pkg/cli/values"
 	"helm.sh/helm/v4/pkg/cmd/require"
@@ -79,7 +80,7 @@ which can contain sensitive values. To hide Kubernetes Secrets use the
 --hide-secret flag. Please carefully consider how and when these flags are used.
 `
 
-func newUpgradeCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
+func newUpgradeCmd(settings *cli.EnvSettings, cfg *action.Configuration, out io.Writer) *cobra.Command {
 	client := action.NewUpgrade(cfg)
 	valueOpts := &values.Options{}
 	var outfmt output.Format
@@ -92,17 +93,17 @@ func newUpgradeCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 		Args:  require.ExactArgs(2),
 		ValidArgsFunction: func(_ *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			if len(args) == 0 {
-				return compListReleases(toComplete, args, cfg)
+				return compListReleases(settings, toComplete, args, cfg)
 			}
 			if len(args) == 1 {
-				return compListCharts(toComplete, true)
+				return compListCharts(settings, toComplete, true)
 			}
 			return noMoreArgsComp()
 		},
 		RunE: func(_ *cobra.Command, args []string) error {
 			client.Namespace = settings.Namespace()
 
-			registryClient, err := newRegistryClient(client.CertFile, client.KeyFile, client.CaFile,
+			registryClient, err := newRegistryClient(settings, client.CertFile, client.KeyFile, client.CaFile,
 				client.InsecureSkipTLSverify, client.PlainHTTP, client.Username, client.Password)
 			if err != nil {
 				return fmt.Errorf("missing registry client: %w", err)
@@ -157,7 +158,7 @@ func newUpgradeCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 						instClient.Replace = true
 					}
 
-					rel, err := runInstall(args, instClient, valueOpts, out)
+					rel, err := runInstall(settings, args, instClient, valueOpts, out)
 					if err != nil {
 						return err
 					}
@@ -309,7 +310,7 @@ func newUpgradeCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 		if len(args) != 2 {
 			return nil, cobra.ShellCompDirectiveNoFileComp
 		}
-		return compVersionFlag(args[1], toComplete)
+		return compVersionFlag(settings, args[1], toComplete)
 	})
 	if err != nil {
 		log.Fatal(err)

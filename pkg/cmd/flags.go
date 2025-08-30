@@ -31,6 +31,7 @@ import (
 	"k8s.io/klog/v2"
 
 	"helm.sh/helm/v4/pkg/action"
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/cli/output"
 	"helm.sh/helm/v4/pkg/cli/values"
 	"helm.sh/helm/v4/pkg/helmpath"
@@ -247,7 +248,7 @@ func (p *postRendererArgsSlice) GetSlice() []string {
 	return p.options.args
 }
 
-func compVersionFlag(chartRef string, _ string) ([]string, cobra.ShellCompDirective) {
+func compVersionFlag(settings *cli.EnvSettings, chartRef string, _ string) ([]string, cobra.ShellCompDirective) {
 	chartInfo := strings.Split(chartRef, "/")
 	if len(chartInfo) != 2 {
 		return nil, cobra.ShellCompDirectiveNoFileComp

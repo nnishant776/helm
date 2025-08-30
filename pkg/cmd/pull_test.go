@@ -24,6 +24,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/repo/repotest"
 )
 
@@ -216,6 +217,7 @@ func TestPullCmd(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			settings := cli.New()
 			outdir := srv.Root()
 			cmd := fmt.Sprintf("fetch %s -d '%s' --repository-config %s --repository-cache %s --registry-config %s --content-cache %s --plain-http",
 				tt.args,
@@ -240,7 +242,7 @@ func TestPullCmd(t *testing.T) {
 					t.Fatal(err)
 				}
 			}
-			_, out, err := executeActionCommand(cmd)
+			_, out, err := executeActionCommand(settings, cmd)
 			if err != nil {
 				if tt.wantError {
 					if tt.wantErrorMsg != "" && tt.wantErrorMsg == err.Error() {
@@ -293,6 +295,7 @@ func runPullTests(t *testing.T, tests []struct {
 				filepath.Join(outdir, "config.json"),
 				additionalFlags,
 			)
+			settings := cli.New()
 			// Create file or Dir before helm pull --untar, see: https://github.com/helm/helm/issues/7182
 			if tt.existFile != "" {
 				file := filepath.Join(outdir, tt.existFile)
@@ -308,7 +311,7 @@ func runPullTests(t *testing.T, tests []struct {
 					t.Fatal(err)
 				}
 			}
-			_, _, err := executeActionCommand(cmd)
+			_, _, err := executeActionCommand(settings, cmd)
 			if err != nil {
 				if tt.wantError {
 					if tt.wantErrorMsg != "" && tt.wantErrorMsg == err.Error() {

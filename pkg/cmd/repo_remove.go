@@ -26,6 +26,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/cmd/require"
 	"helm.sh/helm/v4/pkg/helmpath"
 	"helm.sh/helm/v4/pkg/repo"
@@ -35,10 +36,13 @@ type repoRemoveOptions struct {
 	names     []string
 	repoFile  string
 	repoCache string
+	settings  *cli.EnvSettings
 }
 
-func newRepoRemoveCmd(out io.Writer) *cobra.Command {
-	o := &repoRemoveOptions{}
+func newRepoRemoveCmd(settings *cli.EnvSettings, out io.Writer) *cobra.Command {
+	o := &repoRemoveOptions{
+		settings: settings,
+	}
 
 	cmd := &cobra.Command{
 		Use:     "remove [REPO1 [REPO2 ...]]",
@@ -46,7 +50,7 @@ func newRepoRemoveCmd(out io.Writer) *cobra.Command {
 		Short:   "remove one or more chart repositories",
 		Args:    require.MinimumNArgs(1),
 		ValidArgsFunction: func(_ *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			return compListRepos(toComplete, args), cobra.ShellCompDirectiveNoFileComp
+			return compListRepos(settings, toComplete, args), cobra.ShellCompDirectiveNoFileComp
 		},
 		RunE: func(_ *cobra.Command, args []string) error {
 			o.repoFile = settings.RepositoryConfig

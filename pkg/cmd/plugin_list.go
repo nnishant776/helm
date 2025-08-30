@@ -26,9 +26,10 @@ import (
 	"github.com/spf13/cobra"
 
 	"helm.sh/helm/v4/internal/plugin"
+	"helm.sh/helm/v4/pkg/cli"
 )
 
-func newPluginListCmd(out io.Writer) *cobra.Command {
+func newPluginListCmd(settings *cli.EnvSettings, out io.Writer) *cobra.Command {
 	var pluginType string
 	cmd := &cobra.Command{
 		Use:               "list",
@@ -94,7 +95,7 @@ func filterPlugins(plugins []plugin.Plugin, ignoredPluginNames []string) []plugi
 }
 
 // Provide dynamic auto-completion for plugin names
-func compListPlugins(_ string, ignoredPluginNames []string) []string {
+func compListPlugins(settings *cli.EnvSettings, _ string, ignoredPluginNames []string) []string {
 	var pNames []string
 	dirs := filepath.SplitList(settings.PluginsDirectory)
 	descriptor := plugin.Descriptor{

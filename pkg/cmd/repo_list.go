@@ -23,12 +23,13 @@ import (
 	"github.com/gosuri/uitable"
 	"github.com/spf13/cobra"
 
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/cli/output"
 	"helm.sh/helm/v4/pkg/cmd/require"
 	"helm.sh/helm/v4/pkg/repo"
 )
 
-func newRepoListCmd(out io.Writer) *cobra.Command {
+func newRepoListCmd(settings *cli.EnvSettings, out io.Writer) *cobra.Command {
 	var outfmt output.Format
 	cmd := &cobra.Command{
 		Use:               "list",
@@ -126,7 +127,7 @@ func filterRepos(repos []*repo.Entry, ignoredRepoNames []string) []*repo.Entry {
 }
 
 // Provide dynamic auto-completion for repo names
-func compListRepos(_ string, ignoredRepoNames []string) []string {
+func compListRepos(settings *cli.EnvSettings, _ string, ignoredRepoNames []string) []string {
 	var rNames []string
 
 	f, err := repo.LoadFile(settings.RepositoryConfig)

@@ -35,6 +35,7 @@ import (
 	"helm.sh/helm/v4/pkg/action"
 	chart "helm.sh/helm/v4/pkg/chart/v2"
 	"helm.sh/helm/v4/pkg/chart/v2/loader"
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/cli/output"
 	"helm.sh/helm/v4/pkg/cli/values"
 	"helm.sh/helm/v4/pkg/cmd/require"
@@ -131,7 +132,7 @@ To see the list of chart repositories, use 'helm repo list'. To search for
 charts in a repository, use 'helm search'.
 `
 
-func newInstallCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
+func newInstallCmd(settings *cli.EnvSettings, cfg *action.Configuration, out io.Writer) *cobra.Command {
 	client := action.NewInstall(cfg)
 	valueOpts := &values.Options{}
 	var outfmt output.Format
@@ -142,10 +143,10 @@ func newInstallCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 		Long:  installDesc,
 		Args:  require.MinimumNArgs(1),
 		ValidArgsFunction: func(_ *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			return compInstall(args, toComplete, client)
+			return compInstall(settings, args, toComplete, client)
 		},
 		RunE: func(_ *cobra.Command, args []string) error {
-			registryClient, err := newRegistryClient(client.CertFile, client.KeyFile, client.CaFile,
+			registryClient, err := newRegistryClient(settings, client.CertFile, client.KeyFile, client.CaFile,
 				client.InsecureSkipTLSverify, client.PlainHTTP, client.Username, client.Password)
 			if err != nil {
 				return fmt.Errorf("missing registry client: %w", err)
@@ -158,7 +159,7 @@ func newInstallCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 			if client.DryRunOption == "" {
 				client.DryRunOption = "none"
 			}
-			rel, err := runInstall(args, client, valueOpts, out)
+			rel, err := runInstall(settings, args, client, valueOpts, out)
 			if err != nil {
 				return fmt.Errorf("INSTALLATION FAILED: %w", err)
 			}
@@ -173,7 +174,7 @@ func newInstallCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 		},
 	}
 
-	addInstallFlags(cmd, cmd.Flags(), client, valueOpts)
+	addInstallFlags(settings, cmd, cmd.Flags(), client, valueOpts)
 	// hide-secret is not available in all places the install flags are used so
 	// it is added separately
 	f := cmd.Flags()
@@ -184,7 +185,7 @@ func newInstallCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 	return cmd
 }
 
-func addInstallFlags(cmd *cobra.Command, f *pflag.FlagSet, client *action.Install, valueOpts *values.Options) {
+func addInstallFlags(settings *cli.EnvSettings, cmd *cobra.Command, f *pflag.FlagSet, client *action.Install, valueOpts *values.Options) {
 	f.BoolVar(&client.CreateNamespace, "create-namespace", false, "create the release namespace if not present")
 	// --dry-run options with expected outcome:
 	// - Not set means no dry run and server is contacted.
@@ -231,14 +232,14 @@ func addInstallFlags(cmd *cobra.Command, f *pflag.FlagSet, client *action.Instal
 		if len(args) != requiredArgs {
 			return nil, cobra.ShellCompDirectiveNoFileComp
 		}
-		return compVersionFlag(args[requiredArgs-1], toComplete)
+		return compVersionFlag(settings, args[requiredArgs-1], toComplete)
 	})
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func runInstall(args []string, client *action.Install, valueOpts *values.Options, out io.Writer) (*release.Release, error) {
+func runInstall(settings *cli.EnvSettings, args []string, client *action.Install, valueOpts *values.Options, out io.Writer) (*release.Release, error) {
 	slog.Debug("Original chart version", "version", client.Version)
 	if client.Version == "" && client.Devel {
 		slog.Debug("setting version to >0.0.0-0")
@@ -346,13 +347,13 @@ func checkIfInstallable(ch *chart.Chart) error {
 }
 
 // Provide dynamic auto-completion for the install and template commands
-func compInstall(args []string, toComplete string, client *action.Install) ([]string, cobra.ShellCompDirective) {
+func compInstall(settings *cli.EnvSettings, args []string, toComplete string, client *action.Install) ([]string, cobra.ShellCompDirective) {
 	requiredArgs := 1
 	if client.GenerateName {
 		requiredArgs = 0
 	}
 	if len(args) == requiredArgs {
-		return compListCharts(toComplete, true)
+		return compListCharts(settings, toComplete, true)
 	}
 	return nil, cobra.ShellCompDirectiveNoFileComp
 }

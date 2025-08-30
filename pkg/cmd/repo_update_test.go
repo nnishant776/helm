@@ -25,6 +25,7 @@ import (
 	"testing"
 
 	"helm.sh/helm/v4/internal/test/ensure"
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/getter"
 	"helm.sh/helm/v4/pkg/repo"
 	"helm.sh/helm/v4/pkg/repo/repotest"
@@ -40,9 +41,11 @@ func TestUpdateCmd(t *testing.T) {
 		}
 		return nil
 	}
+	settings := cli.New()
 	o := &repoUpdateOptions{
 		update:   updater,
 		repoFile: "testdata/repositories.yaml",
+		settings: settings,
 	}
 	if err := o.run(&out); err != nil {
 		t.Fatal(err)
@@ -65,10 +68,12 @@ func TestUpdateCmdMultiple(t *testing.T) {
 		}
 		return nil
 	}
+	settings := cli.New()
 	o := &repoUpdateOptions{
 		update:   updater,
 		repoFile: "testdata/repositories.yaml",
 		names:    []string{"firstexample", "charts"},
+		settings: settings,
 	}
 	if err := o.run(&out); err != nil {
 		t.Fatal(err)
@@ -91,10 +96,12 @@ func TestUpdateCmdInvalid(t *testing.T) {
 		}
 		return nil
 	}
+	settings := cli.New()
 	o := &repoUpdateOptions{
 		update:   updater,
 		repoFile: "testdata/repositories.yaml",
 		names:    []string{"firstexample", "invalid"},
+		settings: settings,
 	}
 	if err := o.run(&out); err == nil {
 		t.Fatal("expected error but did not get one")
@@ -113,10 +120,12 @@ func TestUpdateCustomCacheCmd(t *testing.T) {
 
 	defer ts.Stop()
 
+	settings := cli.New()
 	o := &repoUpdateOptions{
 		update:    updateCharts,
 		repoFile:  filepath.Join(ts.Root(), "repositories.yaml"),
 		repoCache: cachePath,
+		settings:  settings,
 	}
 	b := io.Discard
 	if err := o.run(b); err != nil {
@@ -128,8 +137,8 @@ func TestUpdateCustomCacheCmd(t *testing.T) {
 }
 
 func TestUpdateCharts(t *testing.T) {
-	defer resetEnv()()
 	ensure.HelmHome(t)
+	settings := cli.New()
 
 	ts := repotest.NewTempServer(t,
 		repotest.WithChartSourceGlob("testdata/testserver/*.*"),
@@ -162,8 +171,8 @@ func TestRepoUpdateFileCompletion(t *testing.T) {
 }
 
 func TestUpdateChartsFailWithError(t *testing.T) {
-	defer resetEnv()()
 	ensure.HelmHome(t)
+	settings := cli.New()
 
 	ts := repotest.NewTempServer(
 		t,

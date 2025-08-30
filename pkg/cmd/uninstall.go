@@ -24,6 +24,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"helm.sh/helm/v4/pkg/action"
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/cmd/require"
 )
 
@@ -37,7 +38,7 @@ Use the '--dry-run' flag to see which releases will be uninstalled without actua
 uninstalling them.
 `
 
-func newUninstallCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
+func newUninstallCmd(settings *cli.EnvSettings, cfg *action.Configuration, out io.Writer) *cobra.Command {
 	client := action.NewUninstall(cfg)
 
 	cmd := &cobra.Command{
@@ -48,7 +49,7 @@ func newUninstallCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 		Long:       uninstallDesc,
 		Args:       require.MinimumNArgs(1),
 		ValidArgsFunction: func(_ *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			return compListReleases(toComplete, args, cfg)
+			return compListReleases(settings, toComplete, args, cfg)
 		},
 		RunE: func(_ *cobra.Command, args []string) error {
 			validationErr := validateCascadeFlag(client)
