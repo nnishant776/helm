@@ -24,6 +24,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/plugin"
 )
 
@@ -31,23 +32,23 @@ const pluginHelp = `
 Manage client-side Helm plugins.
 `
 
-func newPluginCmd(out io.Writer) *cobra.Command {
+func newPluginCmd(settings *cli.EnvSettings, out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "plugin",
 		Short: "install, list, or uninstall Helm plugins",
 		Long:  pluginHelp,
 	}
 	cmd.AddCommand(
-		newPluginInstallCmd(out),
-		newPluginListCmd(out),
-		newPluginUninstallCmd(out),
-		newPluginUpdateCmd(out),
+		newPluginInstallCmd(settings, out),
+		newPluginListCmd(settings, out),
+		newPluginUninstallCmd(settings, out),
+		newPluginUpdateCmd(settings, out),
 	)
 	return cmd
 }
 
 // runHook will execute a plugin hook.
-func runHook(p *plugin.Plugin, event string) error {
+func runHook(settings *cli.EnvSettings, p *plugin.Plugin, event string) error {
 	plugin.SetupPluginEnv(settings, p.Metadata.Name, p.Dir)
 
 	cmds := p.Metadata.PlatformHooks[event]

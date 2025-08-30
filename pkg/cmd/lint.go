@@ -28,6 +28,7 @@ import (
 
 	"helm.sh/helm/v4/pkg/action"
 	chartutil "helm.sh/helm/v4/pkg/chart/v2/util"
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/cli/values"
 	"helm.sh/helm/v4/pkg/getter"
 	"helm.sh/helm/v4/pkg/lint/support"
@@ -42,7 +43,7 @@ it will emit [ERROR] messages. If it encounters issues that break with conventio
 or recommendation, it will emit [WARNING] messages.
 `
 
-func newLintCmd(out io.Writer) *cobra.Command {
+func newLintCmd(settings *cli.EnvSettings, out io.Writer) *cobra.Command {
 	client := action.NewLint()
 	valueOpts := &values.Options{}
 	var kubeVersion string

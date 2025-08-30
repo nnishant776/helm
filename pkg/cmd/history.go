@@ -27,6 +27,7 @@ import (
 
 	"helm.sh/helm/v4/pkg/action"
 	chart "helm.sh/helm/v4/pkg/chart/v2"
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/cli/output"
 	"helm.sh/helm/v4/pkg/cmd/require"
 	releaseutil "helm.sh/helm/v4/pkg/release/util"
@@ -50,7 +51,7 @@ The historical release set is printed as a formatted table, e.g:
     4           Mon Oct 3 10:15:13 2016     deployed        alpine-0.1.0      1.0             Upgraded successfully
 `
 
-func newHistoryCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
+func newHistoryCmd(settings *cli.EnvSettings, cfg *action.Configuration, out io.Writer) *cobra.Command {
 	client := action.NewHistory(cfg)
 	var outfmt output.Format
 
@@ -64,7 +65,7 @@ func newHistoryCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 			if len(args) != 0 {
 				return noMoreArgsComp()
 			}
-			return compListReleases(toComplete, args, cfg)
+			return compListReleases(settings, toComplete, args, cfg)
 		},
 		RunE: func(_ *cobra.Command, args []string) error {
 			history, err := getHistory(client, args[0])

@@ -48,16 +48,15 @@ func runTestCmd(t *testing.T, tests []cmdTestCase) {
 	for _, tt := range tests {
 		for i := 0; i <= tt.repeat; i++ {
 			t.Run(tt.name, func(t *testing.T) {
-				defer resetEnv()()
-
 				storage := storageFixture()
+				settings := cli.New()
 				for _, rel := range tt.rels {
 					if err := storage.Create(rel); err != nil {
 						t.Fatal(err)
 					}
 				}
 				t.Logf("running cmd (attempt %d): %s", i+1, tt.cmd)
-				_, out, err := executeActionCommandC(storage, tt.cmd)
+				_, out, err := executeActionCommandC(settings, storage, tt.cmd)
 				if tt.wantError && err == nil {
 					t.Errorf("expected error, got success with the following output:\n%s", out)
 				}
@@ -76,11 +75,11 @@ func storageFixture() *storage.Storage {
 	return storage.Init(driver.NewMemory())
 }
 
-func executeActionCommandC(store *storage.Storage, cmd string) (*cobra.Command, string, error) {
-	return executeActionCommandStdinC(store, nil, cmd)
+func executeActionCommandC(settings *cli.EnvSettings, store *storage.Storage, cmd string) (*cobra.Command, string, error) {
+	return executeActionCommandStdinC(settings, store, nil, cmd)
 }
 
-func executeActionCommandStdinC(store *storage.Storage, in *os.File, cmd string) (*cobra.Command, string, error) {
+func executeActionCommandStdinC(settings *cli.EnvSettings, store *storage.Storage, in *os.File, cmd string) (*cobra.Command, string, error) {
 	args, err := shellwords.Parse(cmd)
 	if err != nil {
 		return nil, "", err
@@ -94,7 +93,7 @@ func executeActionCommandStdinC(store *storage.Storage, in *os.File, cmd string)
 		Capabilities: chartutil.DefaultCapabilities,
 	}
 
-	root, err := newRootCmdWithConfig(actionConfig, buf, args, SetupLogging)
+	root, err := newRootCmdWithConfig(settings, actionConfig, buf, args, SetupLogging)
 	if err != nil {
 		return nil, "", err
 	}
@@ -134,18 +133,18 @@ type cmdTestCase struct {
 	repeat int
 }
 
-func executeActionCommand(cmd string) (*cobra.Command, string, error) {
-	return executeActionCommandC(storageFixture(), cmd)
+func executeActionCommand(settings *cli.EnvSettings, cmd string) (*cobra.Command, string, error) {
+	return executeActionCommandC(settings, storageFixture(), cmd)
 }
 
-func resetEnv() func() {
+func resetEnv() func() *cli.EnvSettings {
 	origEnv := os.Environ()
-	return func() {
+	return func() *cli.EnvSettings {
 		os.Clearenv()
 		for _, pair := range origEnv {
 			kv := strings.SplitN(pair, "=", 2)
 			os.Setenv(kv[0], kv[1])
 		}
-		settings = cli.New()
+		return cli.New()
 	}
 }

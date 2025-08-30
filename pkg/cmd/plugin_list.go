@@ -24,10 +24,11 @@ import (
 	"github.com/gosuri/uitable"
 	"github.com/spf13/cobra"
 
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/plugin"
 )
 
-func newPluginListCmd(out io.Writer) *cobra.Command {
+func newPluginListCmd(settings *cli.EnvSettings, out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:               "list",
 		Aliases:           []string{"ls"},
@@ -71,7 +72,7 @@ func filterPlugins(plugins []*plugin.Plugin, ignoredPluginNames []string) []*plu
 }
 
 // Provide dynamic auto-completion for plugin names
-func compListPlugins(_ string, ignoredPluginNames []string) []string {
+func compListPlugins(settings *cli.EnvSettings, _ string, ignoredPluginNames []string) []string {
 	var pNames []string
 	plugins, err := plugin.FindPlugins(settings.PluginsDirectory)
 	if err == nil && len(plugins) > 0 {

@@ -25,6 +25,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"helm.sh/helm/v4/pkg/action"
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/cmd/require"
 )
 
@@ -38,7 +39,7 @@ second is a revision (version) number. If this argument is omitted or set to
 To see revision numbers, run 'helm history RELEASE'.
 `
 
-func newRollbackCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
+func newRollbackCmd(settings *cli.EnvSettings, cfg *action.Configuration, out io.Writer) *cobra.Command {
 	client := action.NewRollback(cfg)
 
 	cmd := &cobra.Command{
@@ -48,7 +49,7 @@ func newRollbackCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 		Args:  require.MinimumNArgs(1),
 		ValidArgsFunction: func(_ *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			if len(args) == 0 {
-				return compListReleases(toComplete, args, cfg)
+				return compListReleases(settings, toComplete, args, cfg)
 			}
 
 			if len(args) == 1 {

@@ -25,6 +25,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"helm.sh/helm/v4/pkg/action"
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/cmd/require"
 )
 
@@ -43,7 +44,7 @@ file, and MUST pass the verification process. Failure in any part of this will
 result in an error, and the chart will not be saved locally.
 `
 
-func newPullCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
+func newPullCmd(settings *cli.EnvSettings, cfg *action.Configuration, out io.Writer) *cobra.Command {
 	client := action.NewPull(action.WithConfig(cfg))
 
 	cmd := &cobra.Command{
@@ -56,7 +57,7 @@ func newPullCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 			if len(args) != 0 {
 				return nil, cobra.ShellCompDirectiveNoFileComp
 			}
-			return compListCharts(toComplete, false)
+			return compListCharts(settings, toComplete, false)
 		},
 		RunE: func(_ *cobra.Command, args []string) error {
 			client.Settings = settings
@@ -65,7 +66,7 @@ func newPullCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 				client.Version = ">0.0.0-0"
 			}
 
-			registryClient, err := newRegistryClient(client.CertFile, client.KeyFile, client.CaFile,
+			registryClient, err := newRegistryClient(settings, client.CertFile, client.KeyFile, client.CaFile,
 				client.InsecureSkipTLSverify, client.PlainHTTP, client.Username, client.Password)
 			if err != nil {
 				return fmt.Errorf("missing registry client: %w", err)
@@ -95,7 +96,7 @@ func newPullCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 		if len(args) != 1 {
 			return nil, cobra.ShellCompDirectiveNoFileComp
 		}
-		return compVersionFlag(args[0], toComplete)
+		return compVersionFlag(settings, args[0], toComplete)
 	})
 
 	if err != nil {

@@ -22,6 +22,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"helm.sh/helm/v4/pkg/action"
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/cmd/require"
 )
 
@@ -36,7 +37,7 @@ get extended information about the release, including:
 - The metadata of the release
 `
 
-func newGetCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
+func newGetCmd(settings *cli.EnvSettings, cfg *action.Configuration, out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get",
 		Short: "download extended information of a named release",
@@ -44,12 +45,12 @@ func newGetCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 		Args:  require.NoArgs,
 	}
 
-	cmd.AddCommand(newGetAllCmd(cfg, out))
-	cmd.AddCommand(newGetValuesCmd(cfg, out))
-	cmd.AddCommand(newGetManifestCmd(cfg, out))
-	cmd.AddCommand(newGetHooksCmd(cfg, out))
-	cmd.AddCommand(newGetNotesCmd(cfg, out))
-	cmd.AddCommand(newGetMetadataCmd(cfg, out))
+	cmd.AddCommand(newGetAllCmd(settings, cfg, out))
+	cmd.AddCommand(newGetValuesCmd(settings, cfg, out))
+	cmd.AddCommand(newGetManifestCmd(settings, cfg, out))
+	cmd.AddCommand(newGetHooksCmd(settings, cfg, out))
+	cmd.AddCommand(newGetNotesCmd(settings, cfg, out))
+	cmd.AddCommand(newGetMetadataCmd(settings, cfg, out))
 
 	return cmd
 }

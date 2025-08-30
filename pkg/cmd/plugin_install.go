@@ -22,22 +22,26 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/cmd/require"
 	"helm.sh/helm/v4/pkg/plugin"
 	"helm.sh/helm/v4/pkg/plugin/installer"
 )
 
 type pluginInstallOptions struct {
-	source  string
-	version string
+	source   string
+	version  string
+	settings *cli.EnvSettings
 }
 
 const pluginInstallDesc = `
 This command allows you to install a plugin from a url to a VCS repo or a local path.
 `
 
-func newPluginInstallCmd(out io.Writer) *cobra.Command {
-	o := &pluginInstallOptions{}
+func newPluginInstallCmd(settings *cli.EnvSettings, out io.Writer) *cobra.Command {
+	o := &pluginInstallOptions{
+		settings: settings,
+	}
 	cmd := &cobra.Command{
 		Use:     "install [options] <path|url>",
 		Short:   "install a Helm plugin",
@@ -69,7 +73,7 @@ func (o *pluginInstallOptions) complete(args []string) error {
 }
 
 func (o *pluginInstallOptions) run(out io.Writer) error {
-	installer.Debug = settings.Debug
+	installer.Debug = o.settings.Debug
 
 	i, err := installer.NewForSource(o.source, o.version)
 	if err != nil {
@@ -85,7 +89,7 @@ func (o *pluginInstallOptions) run(out io.Writer) error {
 		return fmt.Errorf("plugin is installed but unusable: %w", err)
 	}
 
-	if err := runHook(p, plugin.Install); err != nil {
+	if err := runHook(o.settings, p, plugin.Install); err != nil {
 		return err
 	}
 

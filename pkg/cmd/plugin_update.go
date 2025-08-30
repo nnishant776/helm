@@ -24,23 +24,27 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/plugin"
 	"helm.sh/helm/v4/pkg/plugin/installer"
 )
 
 type pluginUpdateOptions struct {
-	names []string
+	settings *cli.EnvSettings
+	names    []string
 }
 
-func newPluginUpdateCmd(out io.Writer) *cobra.Command {
-	o := &pluginUpdateOptions{}
+func newPluginUpdateCmd(settings *cli.EnvSettings, out io.Writer) *cobra.Command {
+	o := &pluginUpdateOptions{
+		settings: settings,
+	}
 
 	cmd := &cobra.Command{
 		Use:     "update <plugin>...",
 		Aliases: []string{"up"},
 		Short:   "update one or more Helm plugins",
 		ValidArgsFunction: func(_ *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			return compListPlugins(toComplete, args), cobra.ShellCompDirectiveNoFileComp
+			return compListPlugins(settings, toComplete, args), cobra.ShellCompDirectiveNoFileComp
 		},
 		PreRunE: func(_ *cobra.Command, args []string) error {
 			return o.complete(args)
@@ -61,9 +65,9 @@ func (o *pluginUpdateOptions) complete(args []string) error {
 }
 
 func (o *pluginUpdateOptions) run(out io.Writer) error {
-	installer.Debug = settings.Debug
-	slog.Debug("loading installed plugins", "path", settings.PluginsDirectory)
-	plugins, err := plugin.FindPlugins(settings.PluginsDirectory)
+	installer.Debug = o.settings.Debug
+	slog.Debug("loading installed plugins", "path", o.settings.PluginsDirectory)
+	plugins, err := plugin.FindPlugins(o.settings.PluginsDirectory)
 	if err != nil {
 		return err
 	}
@@ -71,7 +75,7 @@ func (o *pluginUpdateOptions) run(out io.Writer) error {
 
 	for _, name := range o.names {
 		if found := findPlugin(plugins, name); found != nil {
-			if err := updatePlugin(found); err != nil {
+			if err := updatePlugin(o.settings, found); err != nil {
 				errorPlugins = append(errorPlugins, fmt.Errorf("failed to update plugin %s, got error (%v)", name, err))
 			} else {
 				fmt.Fprintf(out, "Updated plugin: %s\n", name)
@@ -86,7 +90,7 @@ func (o *pluginUpdateOptions) run(out io.Writer) error {
 	return nil
 }
 
-func updatePlugin(p *plugin.Plugin) error {
+func updatePlugin(settings *cli.EnvSettings, p *plugin.Plugin) error {
 	exactLocation, err := filepath.EvalSymlinks(p.Dir)
 	if err != nil {
 		return err
@@ -110,5 +114,5 @@ func updatePlugin(p *plugin.Plugin) error {
 		return err
 	}
 
-	return runHook(updatedPlugin, plugin.Update)
+	return runHook(settings, updatedPlugin, plugin.Update)
 }

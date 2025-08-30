@@ -25,6 +25,7 @@ import (
 	"k8s.io/client-go/util/homedir"
 
 	"helm.sh/helm/v4/pkg/action"
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/cmd/require"
 	"helm.sh/helm/v4/pkg/downloader"
 	"helm.sh/helm/v4/pkg/getter"
@@ -41,7 +42,7 @@ If no lock file is found, 'helm dependency build' will mirror the behavior
 of 'helm dependency update'.
 `
 
-func newDependencyBuildCmd(out io.Writer) *cobra.Command {
+func newDependencyBuildCmd(settings *cli.EnvSettings, out io.Writer) *cobra.Command {
 	client := action.NewDependency()
 
 	cmd := &cobra.Command{
@@ -54,7 +55,7 @@ func newDependencyBuildCmd(out io.Writer) *cobra.Command {
 			if len(args) > 0 {
 				chartpath = filepath.Clean(args[0])
 			}
-			registryClient, err := newRegistryClient(client.CertFile, client.KeyFile, client.CaFile,
+			registryClient, err := newRegistryClient(settings, client.CertFile, client.KeyFile, client.CaFile,
 				client.InsecureSkipTLSverify, client.PlainHTTP, client.Username, client.Password)
 			if err != nil {
 				return fmt.Errorf("missing registry client: %w", err)

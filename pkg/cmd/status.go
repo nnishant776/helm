@@ -30,6 +30,7 @@ import (
 
 	"helm.sh/helm/v4/pkg/action"
 	chartutil "helm.sh/helm/v4/pkg/chart/v2/util"
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/cli/output"
 	"helm.sh/helm/v4/pkg/cmd/require"
 	release "helm.sh/helm/v4/pkg/release/v1"
@@ -49,7 +50,7 @@ The status consists of:
 - additional notes provided by the chart
 `
 
-func newStatusCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
+func newStatusCmd(settings *cli.EnvSettings, cfg *action.Configuration, out io.Writer) *cobra.Command {
 	client := action.NewStatus(cfg)
 	var outfmt output.Format
 
@@ -62,7 +63,7 @@ func newStatusCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 			if len(args) != 0 {
 				return noMoreArgsComp()
 			}
-			return compListReleases(toComplete, args, cfg)
+			return compListReleases(settings, toComplete, args, cfg)
 		},
 		RunE: func(_ *cobra.Command, args []string) error {
 			// When the output format is a table the resources should be fetched

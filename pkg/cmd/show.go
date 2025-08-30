@@ -25,6 +25,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"helm.sh/helm/v4/pkg/action"
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/cmd/require"
 )
 
@@ -57,7 +58,7 @@ This command inspects a chart (directory, file, or URL) and displays the content
 of the CustomResourceDefinition files
 `
 
-func newShowCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
+func newShowCmd(settings *cli.EnvSettings, cfg *action.Configuration, out io.Writer) *cobra.Command {
 	client := action.NewShow(action.ShowAll, cfg)
 
 	showCommand := &cobra.Command{
@@ -73,7 +74,7 @@ func newShowCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 		if len(args) != 0 {
 			return noMoreArgsComp()
 		}
-		return compListCharts(toComplete, true)
+		return compListCharts(settings, toComplete, true)
 	}
 
 	all := &cobra.Command{
@@ -84,11 +85,11 @@ func newShowCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 		ValidArgsFunction: validArgsFunc,
 		RunE: func(_ *cobra.Command, args []string) error {
 			client.OutputFormat = action.ShowAll
-			err := addRegistryClient(client)
+			err := addRegistryClient(settings, client)
 			if err != nil {
 				return err
 			}
-			output, err := runShow(args, client)
+			output, err := runShow(settings, args, client)
 			if err != nil {
 				return err
 			}
@@ -105,11 +106,11 @@ func newShowCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 		ValidArgsFunction: validArgsFunc,
 		RunE: func(_ *cobra.Command, args []string) error {
 			client.OutputFormat = action.ShowValues
-			err := addRegistryClient(client)
+			err := addRegistryClient(settings, client)
 			if err != nil {
 				return err
 			}
-			output, err := runShow(args, client)
+			output, err := runShow(settings, args, client)
 			if err != nil {
 				return err
 			}
@@ -126,11 +127,11 @@ func newShowCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 		ValidArgsFunction: validArgsFunc,
 		RunE: func(_ *cobra.Command, args []string) error {
 			client.OutputFormat = action.ShowChart
-			err := addRegistryClient(client)
+			err := addRegistryClient(settings, client)
 			if err != nil {
 				return err
 			}
-			output, err := runShow(args, client)
+			output, err := runShow(settings, args, client)
 			if err != nil {
 				return err
 			}
@@ -147,11 +148,11 @@ func newShowCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 		ValidArgsFunction: validArgsFunc,
 		RunE: func(_ *cobra.Command, args []string) error {
 			client.OutputFormat = action.ShowReadme
-			err := addRegistryClient(client)
+			err := addRegistryClient(settings, client)
 			if err != nil {
 				return err
 			}
-			output, err := runShow(args, client)
+			output, err := runShow(settings, args, client)
 			if err != nil {
 				return err
 			}
@@ -168,11 +169,11 @@ func newShowCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 		ValidArgsFunction: validArgsFunc,
 		RunE: func(_ *cobra.Command, args []string) error {
 			client.OutputFormat = action.ShowCRDs
-			err := addRegistryClient(client)
+			err := addRegistryClient(settings, client)
 			if err != nil {
 				return err
 			}
-			output, err := runShow(args, client)
+			output, err := runShow(settings, args, client)
 			if err != nil {
 				return err
 			}
@@ -183,14 +184,14 @@ func newShowCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 
 	cmds := []*cobra.Command{all, readmeSubCmd, valuesSubCmd, chartSubCmd, crdsSubCmd}
 	for _, subCmd := range cmds {
-		addShowFlags(subCmd, client)
+		addShowFlags(settings, subCmd, client)
 		showCommand.AddCommand(subCmd)
 	}
 
 	return showCommand
 }
 
-func addShowFlags(subCmd *cobra.Command, client *action.Show) {
+func addShowFlags(settings *cli.EnvSettings, subCmd *cobra.Command, client *action.Show) {
 	f := subCmd.Flags()
 
 	f.BoolVar(&client.Devel, "devel", false, "use development versions, too. Equivalent to version '>0.0.0-0'. If --version is set, this is ignored")
@@ -203,7 +204,7 @@ func addShowFlags(subCmd *cobra.Command, client *action.Show) {
 		if len(args) != 1 {
 			return nil, cobra.ShellCompDirectiveNoFileComp
 		}
-		return compVersionFlag(args[0], toComplete)
+		return compVersionFlag(settings, args[0], toComplete)
 	})
 
 	if err != nil {
@@ -211,7 +212,7 @@ func addShowFlags(subCmd *cobra.Command, client *action.Show) {
 	}
 }
 
-func runShow(args []string, client *action.Show) (string, error) {
+func runShow(settings *cli.EnvSettings, args []string, client *action.Show) (string, error) {
 	slog.Debug("original chart version", "version", client.Version)
 	if client.Version == "" && client.Devel {
 		slog.Debug("setting version to >0.0.0-0")
@@ -225,8 +226,8 @@ func runShow(args []string, client *action.Show) (string, error) {
 	return client.Run(cp)
 }
 
-func addRegistryClient(client *action.Show) error {
-	registryClient, err := newRegistryClient(client.CertFile, client.KeyFile, client.CaFile,
+func addRegistryClient(settings *cli.EnvSettings, client *action.Show) error {
+	registryClient, err := newRegistryClient(settings, client.CertFile, client.KeyFile, client.CaFile,
 		client.InsecureSkipTLSverify, client.PlainHTTP, client.Username, client.Password)
 	if err != nil {
 		return fmt.Errorf("missing registry client: %w", err)

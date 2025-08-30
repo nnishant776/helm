@@ -26,6 +26,7 @@ import (
 	chart "helm.sh/helm/v4/pkg/chart/v2"
 	"helm.sh/helm/v4/pkg/chart/v2/loader"
 	chartutil "helm.sh/helm/v4/pkg/chart/v2/util"
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/helmpath"
 )
 
@@ -33,9 +34,10 @@ func TestCreateCmd(t *testing.T) {
 	t.Chdir(t.TempDir())
 	ensure.HelmHome(t)
 	cname := "testchart"
+	settings := cli.New()
 
 	// Run a create
-	if _, _, err := executeActionCommand("create " + cname); err != nil {
+	if _, _, err := executeActionCommand(settings, "create "+cname); err != nil {
 		t.Fatalf("Failed to run create: %s", err)
 	}
 
@@ -63,7 +65,9 @@ func TestCreateStarterCmd(t *testing.T) {
 	t.Chdir(t.TempDir())
 	ensure.HelmHome(t)
 	cname := "testchart"
-	defer resetEnv()()
+
+	settings := cli.New()
+
 	// Create a starter.
 	starterchart := helmpath.DataPath("starters")
 	os.MkdirAll(starterchart, 0o755)
@@ -78,7 +82,7 @@ func TestCreateStarterCmd(t *testing.T) {
 	}
 
 	// Run a create
-	if _, _, err := executeActionCommand(fmt.Sprintf("create --starter=starterchart %s", cname)); err != nil {
+	if _, _, err := executeActionCommand(settings, fmt.Sprintf("create --starter=starterchart %s", cname)); err != nil {
 		t.Errorf("Failed to run create: %s", err)
 		return
 	}
@@ -123,9 +127,9 @@ func TestCreateStarterCmd(t *testing.T) {
 
 func TestCreateStarterAbsoluteCmd(t *testing.T) {
 	t.Chdir(t.TempDir())
-	defer resetEnv()()
 	ensure.HelmHome(t)
 	cname := "testchart"
+	settings := cli.New()
 
 	// Create a starter.
 	starterchart := helmpath.DataPath("starters")
@@ -143,7 +147,7 @@ func TestCreateStarterAbsoluteCmd(t *testing.T) {
 	starterChartPath := filepath.Join(starterchart, "starterchart")
 
 	// Run a create
-	if _, _, err := executeActionCommand(fmt.Sprintf("create --starter=%s %s", starterChartPath, cname)); err != nil {
+	if _, _, err := executeActionCommand(settings, fmt.Sprintf("create --starter=%s %s", starterChartPath, cname)); err != nil {
 		t.Errorf("Failed to run create: %s", err)
 		return
 	}

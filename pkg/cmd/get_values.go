@@ -24,6 +24,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"helm.sh/helm/v4/pkg/action"
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/cli/output"
 	"helm.sh/helm/v4/pkg/cmd/require"
 )
@@ -37,7 +38,7 @@ type valuesWriter struct {
 	allValues bool
 }
 
-func newGetValuesCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
+func newGetValuesCmd(settings *cli.EnvSettings, cfg *action.Configuration, out io.Writer) *cobra.Command {
 	var outfmt output.Format
 	client := action.NewGetValues(cfg)
 
@@ -50,7 +51,7 @@ func newGetValuesCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 			if len(args) != 0 {
 				return noMoreArgsComp()
 			}
-			return compListReleases(toComplete, args, cfg)
+			return compListReleases(settings, toComplete, args, cfg)
 		},
 		RunE: func(_ *cobra.Command, args []string) error {
 			vals, err := client.Run(args[0])

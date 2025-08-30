@@ -20,6 +20,7 @@ import (
 	"io"
 
 	"github.com/spf13/cobra"
+	"helm.sh/helm/v4/pkg/cli"
 )
 
 const searchDesc = `
@@ -28,7 +29,7 @@ they can be stored including the Artifact Hub and repositories you have added.
 Use search subcommands to search different locations for charts.
 `
 
-func newSearchCmd(out io.Writer) *cobra.Command {
+func newSearchCmd(settings *cli.EnvSettings, out io.Writer) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "search [keyword]",
@@ -37,7 +38,7 @@ func newSearchCmd(out io.Writer) *cobra.Command {
 	}
 
 	cmd.AddCommand(newSearchHubCmd(out))
-	cmd.AddCommand(newSearchRepoCmd(out))
+	cmd.AddCommand(newSearchRepoCmd(settings, out))
 
 	return cmd
 }

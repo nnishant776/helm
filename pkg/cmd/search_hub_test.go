@@ -21,6 +21,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"helm.sh/helm/v4/pkg/cli"
 )
 
 func TestSearchHubCmd(t *testing.T) {
@@ -42,7 +44,8 @@ func TestSearchHubCmd(t *testing.T) {
 
 	testcmd := "search hub --endpoint " + ts.URL + " maria"
 	storage := storageFixture()
-	_, out, err := executeActionCommandC(storage, testcmd)
+	settings := cli.New()
+	_, out, err := executeActionCommandC(settings, storage, testcmd)
 	if err != nil {
 		t.Errorf("unexpected error, %s", err)
 	}
@@ -72,7 +75,8 @@ func TestSearchHubListRepoCmd(t *testing.T) {
 
 	testcmd := "search hub --list-repo-url --endpoint " + ts.URL + " maria"
 	storage := storageFixture()
-	_, out, err := executeActionCommandC(storage, testcmd)
+	settings := cli.New()
+	_, out, err := executeActionCommandC(settings, storage, testcmd)
 	if err != nil {
 		t.Errorf("unexpected error, %s", err)
 	}
@@ -164,8 +168,9 @@ func TestSearchHubCmd_FailOnNoResponseTests(t *testing.T) {
 			tt.cmd += " --endpoint " + ts.URL
 
 			storage := storageFixture()
+			settings := cli.New()
 
-			_, out, err := executeActionCommandC(storage, tt.cmd)
+			_, out, err := executeActionCommandC(settings, storage, tt.cmd)
 			if tt.wantErr {
 				if err == nil {
 					t.Errorf("expected error due to no record in response, got nil")
