@@ -42,6 +42,7 @@ func TestRepoAddCmd(t *testing.T) {
 		repotest.WithChartSourceGlob("testdata/testserver/*.*"),
 	)
 	defer srv.Stop()
+	settings := cli.New()
 
 	// A second test server is setup to verify URL changing
 	srv2 := repotest.NewTempServer(
@@ -79,7 +80,7 @@ func TestRepoAddCmd(t *testing.T) {
 		},
 	}
 
-	runTestCmd(t, tests)
+	runTestCmd(t, settings, tests)
 }
 
 func TestRepoAdd(t *testing.T) {

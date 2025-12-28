@@ -20,12 +20,15 @@ import (
 	"fmt"
 	"path/filepath"
 	"testing"
+
+	"helm.sh/helm/v4/pkg/cli"
 )
 
 var chartPath = "testdata/testcharts/subchart"
 
 func TestTemplateCmd(t *testing.T) {
 	deletevalchart := "testdata/testcharts/issue-9027"
+	settings := cli.New()
 
 	tests := []cmdTestCase{
 		{
@@ -167,12 +170,13 @@ func TestTemplateCmd(t *testing.T) {
 			golden: "output/template-subchart-cm-set-file.txt",
 		},
 	}
-	runTestCmd(t, tests)
+	runTestCmd(t, settings, tests)
 }
 
 func TestTemplateVersionCompletion(t *testing.T) {
 	repoFile := "testdata/helmhome/helm/repositories.yaml"
 	repoCache := "testdata/helmhome/helm/repository"
+	settings := cli.New()
 
 	repoSetup := fmt.Sprintf("--repository-config %s --repository-cache %s", repoFile, repoCache)
 
@@ -197,7 +201,7 @@ func TestTemplateVersionCompletion(t *testing.T) {
 		cmd:    fmt.Sprintf("%s __complete template releasename invalid/invalid --version ''", repoSetup),
 		golden: "output/version-invalid-comp.txt",
 	}}
-	runTestCmd(t, tests)
+	runTestCmd(t, settings, tests)
 }
 
 func TestTemplateFileCompletion(t *testing.T) {

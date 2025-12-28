@@ -28,6 +28,7 @@ import (
 )
 
 func TestRollbackCmd(t *testing.T) {
+	settings := cli.New()
 	rels := []*release.Release{
 		{
 			Name:    "funny-honey",
@@ -81,7 +82,7 @@ func TestRollbackCmd(t *testing.T) {
 		rels:      rels,
 		wantError: true,
 	}}
-	runTestCmd(t, tests)
+	runTestCmd(t, settings, tests)
 }
 
 func TestRollbackRevisionCompletion(t *testing.T) {
@@ -93,6 +94,7 @@ func TestRollbackRevisionCompletion(t *testing.T) {
 		})
 	}
 
+	settings := cli.New()
 	releases := []*release.Release{
 		mk("musketeers", 11, common.StatusDeployed),
 		mk("musketeers", 10, common.StatusSuperseded),
@@ -117,7 +119,7 @@ func TestRollbackRevisionCompletion(t *testing.T) {
 		rels:   releases,
 		golden: "output/rollback-wrong-args-comp.txt",
 	}}
-	runTestCmd(t, tests)
+	runTestCmd(t, settings, tests)
 }
 
 func TestRollbackFileCompletion(t *testing.T) {

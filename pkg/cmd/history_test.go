@@ -25,6 +25,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/release/common"
 	release "helm.sh/helm/v4/pkg/release/v1"
 )
@@ -37,6 +38,8 @@ func TestHistoryCmd(t *testing.T) {
 			Status:  status,
 		})
 	}
+
+	settings := cli.New()
 
 	tests := []cmdTestCase{{
 		name: "get history for release",
@@ -73,7 +76,7 @@ func TestHistoryCmd(t *testing.T) {
 		},
 		golden: "output/history.json",
 	}}
-	runTestCmd(t, tests)
+	runTestCmd(t, settings, tests)
 }
 
 func TestHistoryOutputCompletion(t *testing.T) {
@@ -90,6 +93,7 @@ func revisionFlagCompletionTest(t *testing.T, cmdName string) {
 		})
 	}
 
+	settings := cli.New()
 	releases := []*release.Release{
 		mk("musketeers", 11, common.StatusDeployed),
 		mk("musketeers", 10, common.StatusSuperseded),
@@ -118,7 +122,7 @@ func revisionFlagCompletionTest(t *testing.T, cmdName string) {
 		rels:   releases,
 		golden: "output/revision-wrong-args-comp.txt",
 	}}
-	runTestCmd(t, tests)
+	runTestCmd(t, settings, tests)
 }
 
 func TestHistoryCompletion(t *testing.T) {

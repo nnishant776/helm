@@ -37,6 +37,7 @@ import (
 func TestUpgradeCmd(t *testing.T) {
 
 	tmpChart := t.TempDir()
+	settings := cli.New()
 	cfile := &chart.Chart{
 		Metadata: &chart.Metadata{
 			APIVersion:  chart.APIVersionV1,
@@ -192,7 +193,7 @@ func TestUpgradeCmd(t *testing.T) {
 			rels:   []*release.Release{relWithStatusMock("funny-bunny", 2, ch, rcommon.StatusUninstalled)},
 		},
 	}
-	runTestCmd(t, tests)
+	runTestCmd(t, settings, tests)
 }
 
 func TestUpgradeWithValue(t *testing.T) {
@@ -432,6 +433,7 @@ func TestUpgradeOutputCompletion(t *testing.T) {
 func TestUpgradeVersionCompletion(t *testing.T) {
 	repoFile := "testdata/helmhome/helm/repositories.yaml"
 	repoCache := "testdata/helmhome/helm/repository"
+	settings := cli.New()
 
 	repoSetup := fmt.Sprintf("--repository-config %s --repository-cache %s", repoFile, repoCache)
 
@@ -456,7 +458,7 @@ func TestUpgradeVersionCompletion(t *testing.T) {
 		cmd:    fmt.Sprintf("%s __complete upgrade releasename invalid/invalid --version ''", repoSetup),
 		golden: "output/version-invalid-comp.txt",
 	}}
-	runTestCmd(t, tests)
+	runTestCmd(t, settings, tests)
 }
 
 func TestUpgradeFileCompletion(t *testing.T) {

@@ -23,6 +23,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/repo/v1/repotest"
 )
 
@@ -33,6 +34,7 @@ func TestInstall(t *testing.T) {
 		repotest.WithMiddleware(repotest.BasicAuthMiddleware(t)),
 	)
 	defer srv.Stop()
+	settings := cli.New()
 
 	srv2 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.FileServer(http.Dir(srv.Root())).ServeHTTP(w, r)
@@ -276,7 +278,7 @@ func TestInstall(t *testing.T) {
 		},
 	}
 
-	runTestCmd(t, tests)
+	runTestCmd(t, settings, tests)
 }
 
 func TestInstallOutputCompletion(t *testing.T) {
@@ -286,6 +288,7 @@ func TestInstallOutputCompletion(t *testing.T) {
 func TestInstallVersionCompletion(t *testing.T) {
 	repoFile := "testdata/helmhome/helm/repositories.yaml"
 	repoCache := "testdata/helmhome/helm/repository"
+	settings := cli.New()
 
 	repoSetup := fmt.Sprintf("--repository-config %s --repository-cache %s", repoFile, repoCache)
 
@@ -314,7 +317,7 @@ func TestInstallVersionCompletion(t *testing.T) {
 		cmd:    fmt.Sprintf("%s __complete install releasename invalid/invalid --version ''", repoSetup),
 		golden: "output/version-invalid-comp.txt",
 	}}
-	runTestCmd(t, tests)
+	runTestCmd(t, settings, tests)
 }
 
 func TestInstallFileCompletion(t *testing.T) {

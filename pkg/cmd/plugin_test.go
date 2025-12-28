@@ -307,6 +307,7 @@ func checkCommand(t *testing.T, plugins []*cobra.Command, tests []staticCompleti
 
 func TestPluginDynamicCompletion(t *testing.T) {
 	settings := cli.New()
+	settings.PluginsDirectory = "testdata/helmhome/helm/plugins"
 	tests := []cmdTestCase{{
 		name:   "completion for plugin",
 		cmd:    "__complete args ''",
@@ -334,8 +335,7 @@ func TestPluginDynamicCompletion(t *testing.T) {
 		rels:   []*release.Release{},
 	}}
 	for _, test := range tests {
-		settings.PluginsDirectory = "testdata/helmhome/helm/plugins"
-		runTestCmd(t, []cmdTestCase{test})
+		runTestCmd(t, settings, []cmdTestCase{test})
 	}
 }
 
@@ -358,6 +358,7 @@ func TestLoadCLIPlugins_HelmNoPlugins(t *testing.T) {
 
 func TestPluginCmdsCompletion(t *testing.T) {
 	settings := cli.New()
+	settings.PluginsDirectory = "testdata/helmhome/helm/plugins"
 	tests := []cmdTestCase{{
 		name:   "completion for plugin update",
 		cmd:    "__complete plugin update ''",
@@ -405,8 +406,7 @@ func TestPluginCmdsCompletion(t *testing.T) {
 		rels:   []*release.Release{},
 	}, {}}
 	for _, test := range tests {
-		settings.PluginsDirectory = "testdata/helmhome/helm/plugins"
-		runTestCmd(t, []cmdTestCase{test})
+		runTestCmd(t, settings, []cmdTestCase{test})
 	}
 }
 

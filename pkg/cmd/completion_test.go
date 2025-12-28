@@ -73,6 +73,7 @@ func checkReleaseCompletion(t *testing.T, cmdName string, multiReleasesAllowed b
 	if multiReleasesAllowed {
 		multiReleaseTestGolden = "output/release_list_repeat_comp.txt"
 	}
+	settings := cli.New()
 	tests := []cmdTestCase{{
 		name:   "completion for uninstall",
 		cmd:    fmt.Sprintf("__complete %s ''", cmdName),
@@ -93,6 +94,6 @@ func checkReleaseCompletion(t *testing.T, cmdName string, multiReleasesAllowed b
 		},
 	}}
 	for _, test := range tests {
-		runTestCmd(t, []cmdTestCase{test})
+		runTestCmd(t, settings, []cmdTestCase{test})
 	}
 }

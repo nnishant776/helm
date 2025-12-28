@@ -99,7 +99,7 @@ func TestSearchRepositoriesCmd(t *testing.T) {
 		tests[i].cmd += " --repository-config " + repoFile
 		tests[i].cmd += " --repository-cache " + repoCache
 	}
-	runTestCmd(t, tests)
+	runTestCmd(t, settings, tests)
 }
 
 func TestSearchRepoOutputCompletion(t *testing.T) {

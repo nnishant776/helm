@@ -96,6 +96,7 @@ func TestShowPreReleaseChart(t *testing.T) {
 func TestShowVersionCompletion(t *testing.T) {
 	repoFile := "testdata/helmhome/helm/repositories.yaml"
 	repoCache := "testdata/helmhome/helm/repository"
+	settings := cli.New()
 
 	repoSetup := fmt.Sprintf("--repository-config %s --repository-cache %s", repoFile, repoCache)
 
@@ -132,7 +133,7 @@ func TestShowVersionCompletion(t *testing.T) {
 		cmd:    fmt.Sprintf("%s __complete show values testing/alpine --version ''", repoSetup),
 		golden: "output/version-comp.txt",
 	}}
-	runTestCmd(t, tests)
+	runTestCmd(t, settings, tests)
 }
 
 func TestShowFileCompletion(t *testing.T) {

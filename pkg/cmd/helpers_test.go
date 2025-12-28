@@ -47,13 +47,12 @@ func init() {
 	action.Timestamper = testTimestamper
 }
 
-func runTestCmd(t *testing.T, tests []cmdTestCase) {
+func runTestCmd(t *testing.T, settings *cli.EnvSettings, tests []cmdTestCase) {
 	t.Helper()
 	for _, tt := range tests {
 		for i := 0; i <= tt.repeat; i++ {
 			t.Run(tt.name, func(t *testing.T) {
 				storage := storageFixture()
-				settings := cli.New()
 				for _, rel := range tt.rels {
 					if err := storage.Create(rel); err != nil {
 						t.Fatal(err)

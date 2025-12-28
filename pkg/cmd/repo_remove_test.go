@@ -215,7 +215,7 @@ func TestRepoRemoveCompletion(t *testing.T) {
 		golden: "output/repo_repeat_comp.txt",
 	}}
 	for _, test := range tests {
-		runTestCmd(t, []cmdTestCase{test})
+		runTestCmd(t, settings, []cmdTestCase{test})
 	}
 }
 

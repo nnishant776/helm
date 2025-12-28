@@ -19,10 +19,12 @@ package cmd
 import (
 	"testing"
 
+	"helm.sh/helm/v4/pkg/cli"
 	release "helm.sh/helm/v4/pkg/release/v1"
 )
 
 func TestGetValuesCmd(t *testing.T) {
+	settings := cli.New()
 	tests := []cmdTestCase{{
 		name:   "get values with a release",
 		cmd:    "get values thomas-guide",
@@ -50,7 +52,7 @@ func TestGetValuesCmd(t *testing.T) {
 		golden: "output/values.yaml",
 		rels:   []*release.Release{release.Mock(&release.MockReleaseOptions{Name: "thomas-guide"})},
 	}}
-	runTestCmd(t, tests)
+	runTestCmd(t, settings, tests)
 }
 
 func TestGetValuesCompletion(t *testing.T) {

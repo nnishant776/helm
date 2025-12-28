@@ -17,9 +17,12 @@ package cmd
 
 import (
 	"testing"
+
+	"helm.sh/helm/v4/pkg/cli"
 )
 
 func TestVersion(t *testing.T) {
+	settings := cli.New()
 	tests := []cmdTestCase{{
 		name:   "default",
 		cmd:    "version",
@@ -33,7 +36,7 @@ func TestVersion(t *testing.T) {
 		cmd:    "version --template='Version: {{.Version}}'",
 		golden: "output/version-template.txt",
 	}}
-	runTestCmd(t, tests)
+	runTestCmd(t, settings, tests)
 }
 
 func TestVersionFileCompletion(t *testing.T) {

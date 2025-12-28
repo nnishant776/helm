@@ -413,6 +413,7 @@ func TestPullWithCredentialsCmd(t *testing.T) {
 func TestPullVersionCompletion(t *testing.T) {
 	repoFile := "testdata/helmhome/helm/repositories.yaml"
 	repoCache := "testdata/helmhome/helm/repository"
+	settings := cli.New()
 
 	repoSetup := fmt.Sprintf("--repository-config %s --repository-cache %s", repoFile, repoCache)
 
@@ -437,7 +438,7 @@ func TestPullVersionCompletion(t *testing.T) {
 		cmd:    fmt.Sprintf("%s __complete pull invalid/invalid --version ''", repoSetup),
 		golden: "output/version-invalid-comp.txt",
 	}}
-	runTestCmd(t, tests)
+	runTestCmd(t, settings, tests)
 }
 
 func TestPullWithCredentialsCmdOCIRegistry(t *testing.T) {

@@ -19,10 +19,12 @@ package cmd
 import (
 	"testing"
 
+	"helm.sh/helm/v4/pkg/cli"
 	release "helm.sh/helm/v4/pkg/release/v1"
 )
 
 func TestGetMetadataCmd(t *testing.T) {
+	settings := cli.New()
 	tests := []cmdTestCase{{
 		name:   "get metadata with a release",
 		cmd:    "get metadata thomas-guide",
@@ -45,7 +47,7 @@ func TestGetMetadataCmd(t *testing.T) {
 		golden: "output/get-metadata.yaml",
 		rels:   []*release.Release{release.Mock(&release.MockReleaseOptions{Name: "thomas-guide", Labels: map[string]string{"key1": "value1"}})},
 	}}
-	runTestCmd(t, tests)
+	runTestCmd(t, settings, tests)
 }
 
 func TestGetMetadataCompletion(t *testing.T) {

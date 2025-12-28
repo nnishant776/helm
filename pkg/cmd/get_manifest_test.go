@@ -19,10 +19,12 @@ package cmd
 import (
 	"testing"
 
+	"helm.sh/helm/v4/pkg/cli"
 	release "helm.sh/helm/v4/pkg/release/v1"
 )
 
 func TestGetManifest(t *testing.T) {
+	settings := cli.New()
 	tests := []cmdTestCase{{
 		name:   "get manifest with release",
 		cmd:    "get manifest juno",
@@ -34,7 +36,7 @@ func TestGetManifest(t *testing.T) {
 		golden:    "output/get-manifest-no-args.txt",
 		wantError: true,
 	}}
-	runTestCmd(t, tests)
+	runTestCmd(t, settings, tests)
 }
 
 func TestGetManifestCompletion(t *testing.T) {

@@ -18,6 +18,8 @@ package cmd
 import (
 	"runtime"
 	"testing"
+
+	"helm.sh/helm/v4/pkg/cli"
 )
 
 func TestDependencyListCmd(t *testing.T) {
@@ -39,6 +41,8 @@ func TestDependencyListCmd(t *testing.T) {
 		noDependencies.golden = "output/dependency-list-no-requirements-windows.txt"
 	}
 
+	settings := cli.New()
+
 	tests := []cmdTestCase{noSuchChart,
 		noDependencies, {
 			name:   "Dependencies in chart dir",
@@ -49,7 +53,7 @@ func TestDependencyListCmd(t *testing.T) {
 			cmd:    "dependency list testdata/testcharts/reqtest-0.1.0.tgz",
 			golden: "output/dependency-list-archive.txt",
 		}}
-	runTestCmd(t, tests)
+	runTestCmd(t, settings, tests)
 }
 
 func TestDependencyFileCompletion(t *testing.T) {
