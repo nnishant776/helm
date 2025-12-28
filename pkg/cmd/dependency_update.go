@@ -23,6 +23,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"helm.sh/helm/v4/pkg/action"
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/cmd/require"
 	"helm.sh/helm/v4/pkg/downloader"
 	"helm.sh/helm/v4/pkg/getter"
@@ -44,7 +45,7 @@ in the Chart.yaml file, but (b) at the wrong version.
 `
 
 // newDependencyUpdateCmd creates a new dependency update command.
-func newDependencyUpdateCmd(_ *action.Configuration, out io.Writer) *cobra.Command {
+func newDependencyUpdateCmd(settings *cli.EnvSettings, _ *action.Configuration, out io.Writer) *cobra.Command {
 	client := action.NewDependency()
 
 	cmd := &cobra.Command{
@@ -58,8 +59,8 @@ func newDependencyUpdateCmd(_ *action.Configuration, out io.Writer) *cobra.Comma
 			if len(args) > 0 {
 				chartpath = filepath.Clean(args[0])
 			}
-			registryClient, err := newRegistryClient(client.CertFile, client.KeyFile, client.CaFile,
-				client.InsecureSkipTLSVerify, client.PlainHTTP, client.Username, client.Password)
+			registryClient, err := newRegistryClient(settings, client.CertFile, client.KeyFile, client.CaFile,
+				client.InsecureSkipTLSverify, client.PlainHTTP, client.Username, client.Password)
 			if err != nil {
 				return fmt.Errorf("missing registry client: %w", err)
 			}

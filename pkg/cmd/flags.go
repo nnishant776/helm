@@ -250,7 +250,7 @@ func (p *postRendererArgsSlice) GetSlice() []string {
 	return p.options.args
 }
 
-func compVersionFlag(chartRef string, _ string) ([]string, cobra.ShellCompDirective) {
+func compVersionFlag(settings *cli.EnvSettings, chartRef string, _ string) ([]string, cobra.ShellCompDirective) {
 	chartInfo := strings.Split(chartRef, "/")
 	if len(chartInfo) != 2 {
 		return nil, cobra.ShellCompDirectiveNoFileComp

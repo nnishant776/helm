@@ -27,6 +27,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"helm.sh/helm/v4/pkg/action"
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/cli/output"
 	"helm.sh/helm/v4/pkg/cmd/require"
 )
@@ -38,7 +39,7 @@ The argument this command takes is the name of a deployed release.
 The tests to be run are defined in the chart that was installed.
 `
 
-func newReleaseTestCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
+func newReleaseTestCmd(settings *cli.EnvSettings, cfg *action.Configuration, out io.Writer) *cobra.Command {
 	client := action.NewReleaseTesting(cfg)
 	outfmt := output.Table
 	var outputLogs bool
@@ -53,7 +54,7 @@ func newReleaseTestCmd(cfg *action.Configuration, out io.Writer) *cobra.Command 
 			if len(args) != 0 {
 				return noMoreArgsComp()
 			}
-			return compListReleases(toComplete, args, cfg)
+			return compListReleases(settings, toComplete, args, cfg)
 		},
 		RunE: func(_ *cobra.Command, args []string) error {
 			client.Namespace = settings.Namespace()

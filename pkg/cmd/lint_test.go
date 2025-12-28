@@ -19,10 +19,13 @@ package cmd
 import (
 	"fmt"
 	"testing"
+
+	"helm.sh/helm/v4/pkg/cli"
 )
 
 func TestLintCmdWithSubchartsFlag(t *testing.T) {
 	testChart := "testdata/testcharts/chart-with-bad-subcharts"
+	settings := cli.New()
 	tests := []cmdTestCase{{
 		name:      "lint good chart with bad subcharts",
 		cmd:       fmt.Sprintf("lint %s", testChart),
@@ -34,12 +37,13 @@ func TestLintCmdWithSubchartsFlag(t *testing.T) {
 		golden:    "output/lint-chart-with-bad-subcharts-with-subcharts.txt",
 		wantError: true,
 	}}
-	runTestCmd(t, tests)
+	runTestCmd(t, settings, tests)
 }
 
 func TestLintCmdWithQuietFlag(t *testing.T) {
 	testChart1 := "testdata/testcharts/alpine"
 	testChart2 := "testdata/testcharts/chart-bad-requirements"
+	settings := cli.New()
 	tests := []cmdTestCase{{
 		name:   "lint good chart using --quiet flag",
 		cmd:    fmt.Sprintf("lint --quiet %s", testChart1),
@@ -59,12 +63,12 @@ func TestLintCmdWithQuietFlag(t *testing.T) {
 		golden:    "",
 		wantError: true,
 	}}
-	runTestCmd(t, tests)
-
+	runTestCmd(t, settings, tests)
 }
 
 func TestLintCmdWithKubeVersionFlag(t *testing.T) {
 	testChart := "testdata/testcharts/chart-with-deprecated-api"
+	settings := cli.New()
 	tests := []cmdTestCase{{
 		name:      "lint chart with deprecated api version using kube version flag",
 		cmd:       fmt.Sprintf("lint --kube-version 1.22.0 %s", testChart),
@@ -88,7 +92,7 @@ func TestLintCmdWithKubeVersionFlag(t *testing.T) {
 		golden:    "output/lint-chart-with-deprecated-api-old-k8s.txt",
 		wantError: false,
 	}}
-	runTestCmd(t, tests)
+	runTestCmd(t, settings, tests)
 }
 
 func TestLintCmdRequiresArgs(t *testing.T) {

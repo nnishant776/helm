@@ -26,21 +26,25 @@ import (
 	"github.com/spf13/cobra"
 
 	"helm.sh/helm/v4/internal/plugin"
+	"helm.sh/helm/v4/pkg/cli"
 )
 
 type pluginUninstallOptions struct {
-	names []string
+	names    []string
+	settings *cli.EnvSettings
 }
 
-func newPluginUninstallCmd(out io.Writer) *cobra.Command {
-	o := &pluginUninstallOptions{}
+func newPluginUninstallCmd(settings *cli.EnvSettings, out io.Writer) *cobra.Command {
+	o := &pluginUninstallOptions{
+		settings: settings,
+	}
 
 	cmd := &cobra.Command{
 		Use:     "uninstall <plugin>...",
 		Aliases: []string{"rm", "remove"},
 		Short:   "uninstall one or more Helm plugins",
 		ValidArgsFunction: func(_ *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			return compListPlugins(toComplete, args), cobra.ShellCompDirectiveNoFileComp
+			return compListPlugins(settings, toComplete, args), cobra.ShellCompDirectiveNoFileComp
 		},
 		PreRunE: func(_ *cobra.Command, args []string) error {
 			return o.complete(args)
@@ -61,15 +65,15 @@ func (o *pluginUninstallOptions) complete(args []string) error {
 }
 
 func (o *pluginUninstallOptions) run(out io.Writer) error {
-	slog.Debug("loading installer plugins", "dir", settings.PluginsDirectory)
-	plugins, err := plugin.LoadAll(settings.PluginsDirectory)
+	slog.Debug("loading installer plugins", "dir", o.settings.PluginsDirectory)
+	plugins, err := plugin.LoadAll(o.settings.PluginsDirectory)
 	if err != nil {
 		return err
 	}
 	var errorPlugins []error
 	for _, name := range o.names {
 		if found := findPlugin(plugins, name); found != nil {
-			if err := uninstallPlugin(found); err != nil {
+			if err := uninstallPlugin(o.settings, found); err != nil {
 				errorPlugins = append(errorPlugins, fmt.Errorf("failed to uninstall plugin %s, got error (%v)", name, err))
 			} else {
 				fmt.Fprintf(out, "Uninstalled plugin: %s\n", name)
@@ -84,7 +88,7 @@ func (o *pluginUninstallOptions) run(out io.Writer) error {
 	return nil
 }
 
-func uninstallPlugin(p plugin.Plugin) error {
+func uninstallPlugin(settings *cli.EnvSettings, p plugin.Plugin) error {
 	if err := os.RemoveAll(p.Dir()); err != nil {
 		return err
 	}
@@ -118,7 +122,7 @@ func uninstallPlugin(p plugin.Plugin) error {
 		}
 	}
 
-	return runHook(p, plugin.Delete)
+	return runHook(settings, p, plugin.Delete)
 }
 
 // TODO should this be in pkg/plugin/loader.go?

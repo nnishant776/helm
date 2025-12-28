@@ -29,6 +29,7 @@ import (
 	chart "helm.sh/helm/v4/pkg/chart/v2"
 	"helm.sh/helm/v4/pkg/chart/v2/loader"
 	chartutil "helm.sh/helm/v4/pkg/chart/v2/util"
+	"helm.sh/helm/v4/pkg/cli"
 	rcommon "helm.sh/helm/v4/pkg/release/common"
 	release "helm.sh/helm/v4/pkg/release/v1"
 )
@@ -36,6 +37,7 @@ import (
 func TestUpgradeCmd(t *testing.T) {
 
 	tmpChart := t.TempDir()
+	settings := cli.New()
 	cfile := &chart.Chart{
 		Metadata: &chart.Metadata{
 			APIVersion:  chart.APIVersionV1,
@@ -191,21 +193,20 @@ func TestUpgradeCmd(t *testing.T) {
 			rels:   []*release.Release{relWithStatusMock("funny-bunny", 2, ch, rcommon.StatusUninstalled)},
 		},
 	}
-	runTestCmd(t, tests)
+	runTestCmd(t, settings, tests)
 }
 
 func TestUpgradeWithValue(t *testing.T) {
 	releaseName := "funny-bunny-v2"
 	relMock, ch, chartPath := prepareMockRelease(t, releaseName)
 
-	defer resetEnv()()
-
 	store := storageFixture()
+	settings := cli.New()
 
 	store.Create(relMock(releaseName, 3, ch))
 
 	cmd := fmt.Sprintf("upgrade %s --set favoriteDrink=tea '%s'", releaseName, chartPath)
-	_, _, err := executeActionCommandC(store, cmd)
+	_, _, err := executeActionCommandC(settings, store, cmd)
 	if err != nil {
 		t.Errorf("unexpected error, got '%v'", err)
 	}
@@ -229,14 +230,13 @@ func TestUpgradeWithStringValue(t *testing.T) {
 	releaseName := "funny-bunny-v3"
 	relMock, ch, chartPath := prepareMockRelease(t, releaseName)
 
-	defer resetEnv()()
-
 	store := storageFixture()
+	settings := cli.New()
 
 	store.Create(relMock(releaseName, 3, ch))
 
 	cmd := fmt.Sprintf("upgrade %s --set-string favoriteDrink=coffee '%s'", releaseName, chartPath)
-	_, _, err := executeActionCommandC(store, cmd)
+	_, _, err := executeActionCommandC(settings, store, cmd)
 	if err != nil {
 		t.Errorf("unexpected error, got '%v'", err)
 	}
@@ -261,14 +261,13 @@ func TestUpgradeInstallWithSubchartNotes(t *testing.T) {
 	releaseName := "wacky-bunny-v1"
 	relMock, ch, _ := prepareMockRelease(t, releaseName)
 
-	defer resetEnv()()
-
 	store := storageFixture()
+	settings := cli.New()
 
 	store.Create(relMock(releaseName, 1, ch))
 
 	cmd := fmt.Sprintf("upgrade %s -i --render-subchart-notes '%s'", releaseName, "testdata/testcharts/chart-with-subchart-notes")
-	_, _, err := executeActionCommandC(store, cmd)
+	_, _, err := executeActionCommandC(settings, store, cmd)
 	if err != nil {
 		t.Errorf("unexpected error, got '%v'", err)
 	}
@@ -297,14 +296,13 @@ func TestUpgradeWithValuesFile(t *testing.T) {
 	releaseName := "funny-bunny-v4"
 	relMock, ch, chartPath := prepareMockRelease(t, releaseName)
 
-	defer resetEnv()()
-
 	store := storageFixture()
+	settings := cli.New()
 
 	store.Create(relMock(releaseName, 3, ch))
 
 	cmd := fmt.Sprintf("upgrade %s --values testdata/testcharts/upgradetest/values.yaml '%s'", releaseName, chartPath)
-	_, _, err := executeActionCommandC(store, cmd)
+	_, _, err := executeActionCommandC(settings, store, cmd)
 	if err != nil {
 		t.Errorf("unexpected error, got '%v'", err)
 	}
@@ -325,13 +323,11 @@ func TestUpgradeWithValuesFile(t *testing.T) {
 }
 
 func TestUpgradeWithValuesFromStdin(t *testing.T) {
-
 	releaseName := "funny-bunny-v5"
 	relMock, ch, chartPath := prepareMockRelease(t, releaseName)
 
-	defer resetEnv()()
-
 	store := storageFixture()
+	settings := cli.New()
 
 	store.Create(relMock(releaseName, 3, ch))
 
@@ -341,7 +337,7 @@ func TestUpgradeWithValuesFromStdin(t *testing.T) {
 	}
 
 	cmd := fmt.Sprintf("upgrade %s --values - '%s'", releaseName, chartPath)
-	_, _, err = executeActionCommandStdinC(store, in, cmd)
+	_, _, err = executeActionCommandStdinC(settings, store, in, cmd)
 	if err != nil {
 		t.Errorf("unexpected error, got '%v'", err)
 	}
@@ -365,9 +361,8 @@ func TestUpgradeInstallWithValuesFromStdin(t *testing.T) {
 	releaseName := "funny-bunny-v6"
 	_, _, chartPath := prepareMockRelease(t, releaseName)
 
-	defer resetEnv()()
-
 	store := storageFixture()
+	settings := cli.New()
 
 	in, err := os.Open("testdata/testcharts/upgradetest/values.yaml")
 	if err != nil {
@@ -375,7 +370,7 @@ func TestUpgradeInstallWithValuesFromStdin(t *testing.T) {
 	}
 
 	cmd := fmt.Sprintf("upgrade %s -f - --install '%s'", releaseName, chartPath)
-	_, _, err = executeActionCommandStdinC(store, in, cmd)
+	_, _, err = executeActionCommandStdinC(settings, store, in, cmd)
 	if err != nil {
 		t.Errorf("unexpected error, got '%v'", err)
 	}
@@ -438,6 +433,7 @@ func TestUpgradeOutputCompletion(t *testing.T) {
 func TestUpgradeVersionCompletion(t *testing.T) {
 	repoFile := "testdata/helmhome/helm/repositories.yaml"
 	repoCache := "testdata/helmhome/helm/repository"
+	settings := cli.New()
 
 	repoSetup := fmt.Sprintf("--repository-config %s --repository-cache %s", repoFile, repoCache)
 
@@ -462,7 +458,7 @@ func TestUpgradeVersionCompletion(t *testing.T) {
 		cmd:    fmt.Sprintf("%s __complete upgrade releasename invalid/invalid --version ''", repoSetup),
 		golden: "output/version-invalid-comp.txt",
 	}}
-	runTestCmd(t, tests)
+	runTestCmd(t, settings, tests)
 }
 
 func TestUpgradeFileCompletion(t *testing.T) {
@@ -475,16 +471,15 @@ func TestUpgradeInstallWithLabels(t *testing.T) {
 	releaseName := "funny-bunny-labels"
 	_, _, chartPath := prepareMockRelease(t, releaseName)
 
-	defer resetEnv()()
-
 	store := storageFixture()
+	settings := cli.New()
 
 	expectedLabels := map[string]string{
 		"key1": "val1",
 		"key2": "val2",
 	}
 	cmd := fmt.Sprintf("upgrade %s --install --labels key1=val1,key2=val2 '%s'", releaseName, chartPath)
-	_, _, err := executeActionCommandC(store, cmd)
+	_, _, err := executeActionCommandC(settings, store, cmd)
 	if err != nil {
 		t.Errorf("unexpected error, got '%v'", err)
 	}
@@ -548,14 +543,13 @@ func TestUpgradeWithDryRun(t *testing.T) {
 	releaseName := "funny-bunny-labels"
 	_, _, chartPath := prepareMockReleaseWithSecret(t, releaseName)
 
-	defer resetEnv()()
-
 	store := storageFixture()
+	settings := cli.New()
 
 	// First install a release into the store so that future --dry-run attempts
 	// have it available.
 	cmd := fmt.Sprintf("upgrade %s --install '%s'", releaseName, chartPath)
-	_, _, err := executeActionCommandC(store, cmd)
+	_, _, err := executeActionCommandC(settings, store, cmd)
 	if err != nil {
 		t.Errorf("unexpected error, got '%v'", err)
 	}
@@ -566,7 +560,7 @@ func TestUpgradeWithDryRun(t *testing.T) {
 	}
 
 	cmd = fmt.Sprintf("upgrade %s --dry-run '%s'", releaseName, chartPath)
-	_, out, err := executeActionCommandC(store, cmd)
+	_, out, err := executeActionCommandC(settings, store, cmd)
 	if err != nil {
 		t.Errorf("unexpected error, got '%v'", err)
 	}
@@ -583,7 +577,7 @@ func TestUpgradeWithDryRun(t *testing.T) {
 
 	// Ensure the secret is not in the output
 	cmd = fmt.Sprintf("upgrade %s --dry-run --hide-secret '%s'", releaseName, chartPath)
-	_, out, err = executeActionCommandC(store, cmd)
+	_, out, err = executeActionCommandC(settings, store, cmd)
 	if err != nil {
 		t.Errorf("unexpected error, got '%v'", err)
 	}
@@ -600,7 +594,7 @@ func TestUpgradeWithDryRun(t *testing.T) {
 
 	// Ensure there is an error when --hide-secret used without dry-run
 	cmd = fmt.Sprintf("upgrade %s --hide-secret '%s'", releaseName, chartPath)
-	_, _, err = executeActionCommandC(store, cmd)
+	_, _, err = executeActionCommandC(settings, store, cmd)
 	if err == nil {
 		t.Error("expected error when --hide-secret used without --dry-run")
 	}

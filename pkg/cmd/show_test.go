@@ -22,6 +22,7 @@ import (
 	"strings"
 	"testing"
 
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/repo/v1/repotest"
 )
 
@@ -69,6 +70,7 @@ func TestShowPreReleaseChart(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			outdir := srv.Root()
+			settings := cli.New()
 			cmd := fmt.Sprintf("show all '%s' %s --repository-config %s --repository-cache %s --content-cache %s",
 				tt.args,
 				tt.flags,
@@ -77,7 +79,7 @@ func TestShowPreReleaseChart(t *testing.T) {
 				contentTmp,
 			)
 			//_, out, err := executeActionCommand(cmd)
-			_, _, err := executeActionCommand(cmd)
+			_, _, err := executeActionCommand(settings, cmd)
 			if err != nil {
 				if tt.fail {
 					if !strings.Contains(err.Error(), tt.expectedErr) {
@@ -94,6 +96,7 @@ func TestShowPreReleaseChart(t *testing.T) {
 func TestShowVersionCompletion(t *testing.T) {
 	repoFile := "testdata/helmhome/helm/repositories.yaml"
 	repoCache := "testdata/helmhome/helm/repository"
+	settings := cli.New()
 
 	repoSetup := fmt.Sprintf("--repository-config %s --repository-cache %s", repoFile, repoCache)
 
@@ -130,7 +133,7 @@ func TestShowVersionCompletion(t *testing.T) {
 		cmd:    fmt.Sprintf("%s __complete show values testing/alpine --version ''", repoSetup),
 		golden: "output/version-comp.txt",
 	}}
-	runTestCmd(t, tests)
+	runTestCmd(t, settings, tests)
 }
 
 func TestShowFileCompletion(t *testing.T) {

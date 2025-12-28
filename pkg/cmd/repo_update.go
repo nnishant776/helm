@@ -26,6 +26,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/cmd/require"
 	"helm.sh/helm/v4/pkg/getter"
 	"helm.sh/helm/v4/pkg/repo/v1"
@@ -48,10 +49,11 @@ type repoUpdateOptions struct {
 	repoCache string
 	names     []string
 	timeout   time.Duration
+	settings  *cli.EnvSettings
 }
 
-func newRepoUpdateCmd(out io.Writer) *cobra.Command {
-	o := &repoUpdateOptions{update: updateCharts}
+func newRepoUpdateCmd(settings *cli.EnvSettings, out io.Writer) *cobra.Command {
+	o := &repoUpdateOptions{update: updateCharts, settings: settings}
 
 	cmd := &cobra.Command{
 		Use:     "update [REPO1 [REPO2 ...]]",
@@ -60,7 +62,7 @@ func newRepoUpdateCmd(out io.Writer) *cobra.Command {
 		Long:    updateDesc,
 		Args:    require.MinimumNArgs(0),
 		ValidArgsFunction: func(_ *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			return compListRepos(toComplete, args), cobra.ShellCompDirectiveNoFileComp
+			return compListRepos(settings, toComplete, args), cobra.ShellCompDirectiveNoFileComp
 		},
 		RunE: func(_ *cobra.Command, args []string) error {
 			o.repoFile = settings.RepositoryConfig
@@ -99,7 +101,7 @@ func (o *repoUpdateOptions) run(out io.Writer) error {
 
 	for _, cfg := range f.Repositories {
 		if updateAllRepos || isRepoRequested(cfg.Name, o.names) {
-			r, err := repo.NewChartRepository(cfg, getter.All(settings, getter.WithTimeout(o.timeout)))
+			r, err := repo.NewChartRepository(cfg, getter.All(o.settings, getter.WithTimeout(o.timeout)))
 			if err != nil {
 				return err
 			}

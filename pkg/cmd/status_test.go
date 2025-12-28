@@ -21,6 +21,7 @@ import (
 	"time"
 
 	chart "helm.sh/helm/v4/pkg/chart/v2"
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/release/common"
 	release "helm.sh/helm/v4/pkg/release/v1"
 )
@@ -36,6 +37,7 @@ func TestStatusCmd(t *testing.T) {
 			Hooks:     hooks,
 		}}
 	}
+	settings := cli.New()
 
 	tests := []cmdTestCase{{
 		name:   "get status of a deployed release",
@@ -127,7 +129,7 @@ func TestStatusCmd(t *testing.T) {
 			},
 		),
 	}}
-	runTestCmd(t, tests)
+	runTestCmd(t, settings, tests)
 }
 
 func mustParseTime(t string) time.Time {
@@ -187,6 +189,7 @@ func TestStatusCompletion(t *testing.T) {
 			},
 		}}
 
+	settings := cli.New()
 	tests := []cmdTestCase{{
 		name:   "completion for status",
 		cmd:    "__complete status a",
@@ -203,7 +206,7 @@ func TestStatusCompletion(t *testing.T) {
 		golden: "output/status-comp.txt",
 		rels:   rels,
 	}}
-	runTestCmd(t, tests)
+	runTestCmd(t, settings, tests)
 }
 
 func TestStatusRevisionCompletion(t *testing.T) {

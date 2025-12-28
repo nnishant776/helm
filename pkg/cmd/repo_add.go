@@ -32,6 +32,7 @@ import (
 	"golang.org/x/term"
 	"sigs.k8s.io/yaml"
 
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/cmd/require"
 	"helm.sh/helm/v4/pkg/getter"
 	"helm.sh/helm/v4/pkg/repo/v1"
@@ -61,10 +62,13 @@ type repoAddOptions struct {
 
 	repoFile  string
 	repoCache string
+	settings  *cli.EnvSettings
 }
 
-func newRepoAddCmd(out io.Writer) *cobra.Command {
-	o := &repoAddOptions{}
+func newRepoAddCmd(settings *cli.EnvSettings, out io.Writer) *cobra.Command {
+	o := &repoAddOptions{
+		settings: settings,
+	}
 
 	cmd := &cobra.Command{
 		Use:   "add [NAME] [URL]",
@@ -201,7 +205,7 @@ func (o *repoAddOptions) run(out io.Writer) error {
 		return nil
 	}
 
-	r, err := repo.NewChartRepository(&c, getter.All(settings, getter.WithTimeout(o.timeout)))
+	r, err := repo.NewChartRepository(&c, getter.All(o.settings, getter.WithTimeout(o.timeout)))
 	if err != nil {
 		return err
 	}

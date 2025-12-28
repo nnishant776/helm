@@ -24,6 +24,7 @@ import (
 	"strings"
 	"testing"
 
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/helmpath"
 	"helm.sh/helm/v4/pkg/repo/v1"
 	"helm.sh/helm/v4/pkg/repo/v1/repotest"
@@ -38,6 +39,7 @@ func TestRepoRemove(t *testing.T) {
 
 	rootDir := t.TempDir()
 	repoFile := filepath.Join(rootDir, "repositories.yaml")
+	settings := cli.New()
 
 	const testRepoName = "test-name"
 
@@ -47,6 +49,7 @@ func TestRepoRemove(t *testing.T) {
 		names:     []string{testRepoName},
 		repoFile:  repoFile,
 		repoCache: rootDir,
+		settings:  settings,
 	}
 
 	if err := rmOpts.run(os.Stderr); err == nil {
@@ -56,6 +59,7 @@ func TestRepoRemove(t *testing.T) {
 		name:     testRepoName,
 		url:      ts.URL(),
 		repoFile: repoFile,
+		settings: settings,
 	}
 
 	if err := o.run(os.Stderr); err != nil {
@@ -95,6 +99,7 @@ func TestRepoRemove(t *testing.T) {
 			name:     repoName,
 			url:      ts.URL(),
 			repoFile: repoFile,
+			settings: settings,
 		}
 
 		if err := o.run(os.Stderr); err != nil {
@@ -173,6 +178,7 @@ func TestRepoRemoveCompletion(t *testing.T) {
 	rootDir := t.TempDir()
 	repoFile := filepath.Join(rootDir, "repositories.yaml")
 	repoCache := filepath.Join(rootDir, "cache/")
+	settings := cli.New()
 
 	var testRepoNames = []string{"foo", "bar", "baz"}
 
@@ -182,6 +188,7 @@ func TestRepoRemoveCompletion(t *testing.T) {
 			name:     repoName,
 			url:      ts.URL(),
 			repoFile: repoFile,
+			settings: settings,
 		}
 
 		if err := o.run(os.Stderr); err != nil {
@@ -208,7 +215,7 @@ func TestRepoRemoveCompletion(t *testing.T) {
 		golden: "output/repo_repeat_comp.txt",
 	}}
 	for _, test := range tests {
-		runTestCmd(t, []cmdTestCase{test})
+		runTestCmd(t, settings, []cmdTestCase{test})
 	}
 }
 

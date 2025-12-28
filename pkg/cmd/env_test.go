@@ -18,15 +18,18 @@ package cmd
 
 import (
 	"testing"
+
+	"helm.sh/helm/v4/pkg/cli"
 )
 
 func TestEnv(t *testing.T) {
+	settings := cli.New()
 	tests := []cmdTestCase{{
 		name:   "completion for env",
 		cmd:    "__complete env ''",
 		golden: "output/env-comp.txt",
 	}}
-	runTestCmd(t, tests)
+	runTestCmd(t, settings, tests)
 }
 
 func TestEnvFileCompletion(t *testing.T) {

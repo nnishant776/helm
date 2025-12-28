@@ -19,10 +19,12 @@ package cmd
 import (
 	"testing"
 
+	"helm.sh/helm/v4/pkg/cli"
 	release "helm.sh/helm/v4/pkg/release/v1"
 )
 
 func TestGetNotesCmd(t *testing.T) {
+	settings := cli.New()
 	tests := []cmdTestCase{{
 		name:   "get notes of a deployed release",
 		cmd:    "get notes the-limerick",
@@ -34,7 +36,7 @@ func TestGetNotesCmd(t *testing.T) {
 		golden:    "output/get-notes-no-args.txt",
 		wantError: true,
 	}}
-	runTestCmd(t, tests)
+	runTestCmd(t, settings, tests)
 }
 
 func TestGetNotesCompletion(t *testing.T) {

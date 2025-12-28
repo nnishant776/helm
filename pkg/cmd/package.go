@@ -26,6 +26,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"helm.sh/helm/v4/pkg/action"
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/cli/values"
 	"helm.sh/helm/v4/pkg/downloader"
 	"helm.sh/helm/v4/pkg/getter"
@@ -47,7 +48,7 @@ If '--keyring' is not specified, Helm usually defaults to the public keyring
 unless your environment is otherwise configured.
 `
 
-func newPackageCmd(out io.Writer) *cobra.Command {
+func newPackageCmd(settings *cli.EnvSettings, out io.Writer) *cobra.Command {
 	client := action.NewPackage()
 	valueOpts := &values.Options{}
 
@@ -75,8 +76,8 @@ func newPackageCmd(out io.Writer) *cobra.Command {
 				return err
 			}
 
-			registryClient, err := newRegistryClient(client.CertFile, client.KeyFile, client.CaFile,
-				client.InsecureSkipTLSVerify, client.PlainHTTP, client.Username, client.Password)
+			registryClient, err := newRegistryClient(settings, client.CertFile, client.KeyFile, client.CaFile,
+				client.InsecureSkipTLSverify, client.PlainHTTP, client.Username, client.Password)
 			if err != nil {
 				return fmt.Errorf("missing registry client: %w", err)
 			}

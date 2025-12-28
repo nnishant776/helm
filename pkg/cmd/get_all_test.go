@@ -19,10 +19,12 @@ package cmd
 import (
 	"testing"
 
+	"helm.sh/helm/v4/pkg/cli"
 	release "helm.sh/helm/v4/pkg/release/v1"
 )
 
 func TestGetCmd(t *testing.T) {
+	settings := cli.New()
 	tests := []cmdTestCase{{
 		name:   "get all with a release",
 		cmd:    "get all thomas-guide",
@@ -39,7 +41,7 @@ func TestGetCmd(t *testing.T) {
 		golden:    "output/get-all-no-args.txt",
 		wantError: true,
 	}}
-	runTestCmd(t, tests)
+	runTestCmd(t, settings, tests)
 }
 
 func TestGetAllCompletion(t *testing.T) {

@@ -25,6 +25,7 @@ import (
 
 	"helm.sh/helm/v4/internal/plugin"
 	"helm.sh/helm/v4/internal/plugin/installer"
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/cmd/require"
 	"helm.sh/helm/v4/pkg/getter"
 	"helm.sh/helm/v4/pkg/registry"
@@ -44,6 +45,7 @@ type pluginInstallOptions struct {
 	plainHTTP             bool
 	password              string
 	username              string
+	settings              *cli.EnvSettings
 }
 
 const pluginInstallDesc = `
@@ -57,8 +59,10 @@ treated as "local dev" and do not require signatures.
 Use --verify=false to skip signature verification for remote plugins.
 `
 
-func newPluginInstallCmd(out io.Writer) *cobra.Command {
-	o := &pluginInstallOptions{}
+func newPluginInstallCmd(settings *cli.EnvSettings, out io.Writer) *cobra.Command {
+	o := &pluginInstallOptions{
+		settings: settings,
+	}
 	cmd := &cobra.Command{
 		Use:     "install [options] <path|url>",
 		Short:   "install a Helm plugin",
@@ -119,6 +123,8 @@ func (o *pluginInstallOptions) newInstallerForSource() (installer.Installer, err
 }
 
 func (o *pluginInstallOptions) run(out io.Writer) error {
+	installer.Debug = o.settings.Debug
+
 	i, err := o.newInstallerForSource()
 	if err != nil {
 		return err
@@ -174,7 +180,7 @@ func (o *pluginInstallOptions) run(out io.Writer) error {
 		return fmt.Errorf("plugin is installed but unusable: %w", err)
 	}
 
-	if err := runHook(p, plugin.Install); err != nil {
+	if err := runHook(o.settings, p, plugin.Install); err != nil {
 		return err
 	}
 

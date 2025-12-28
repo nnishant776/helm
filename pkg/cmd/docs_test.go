@@ -18,9 +18,12 @@ package cmd
 
 import (
 	"testing"
+
+	"helm.sh/helm/v4/pkg/cli"
 )
 
 func TestDocsTypeFlagCompletion(t *testing.T) {
+	settings := cli.New()
 	tests := []cmdTestCase{{
 		name:   "completion for docs --type",
 		cmd:    "__complete docs --type ''",
@@ -30,7 +33,7 @@ func TestDocsTypeFlagCompletion(t *testing.T) {
 		cmd:    "__complete docs --type mar",
 		golden: "output/docs-type-comp.txt",
 	}}
-	runTestCmd(t, tests)
+	runTestCmd(t, settings, tests)
 }
 
 func TestDocsFileCompletion(t *testing.T) {

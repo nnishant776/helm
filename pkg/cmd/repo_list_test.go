@@ -20,6 +20,8 @@ import (
 	"fmt"
 	"path/filepath"
 	"testing"
+
+	"helm.sh/helm/v4/pkg/cli"
 )
 
 func TestRepoListOutputCompletion(t *testing.T) {
@@ -34,6 +36,7 @@ func TestRepoList(t *testing.T) {
 	rootDir := t.TempDir()
 	repoFile := filepath.Join(rootDir, "repositories.yaml")
 	repoFile2 := "testdata/repositories.yaml"
+	settings := cli.New()
 
 	tests := []cmdTestCase{
 		{
@@ -56,5 +59,5 @@ func TestRepoList(t *testing.T) {
 		},
 	}
 
-	runTestCmd(t, tests)
+	runTestCmd(t, settings, tests)
 }

@@ -100,11 +100,12 @@ By default, the default directories depend on the Operating System. The defaults
 | Windows          | %TEMP%\helm               | %APPDATA%\helm                 | %APPDATA%\helm          |
 `
 
-var settings = cli.New()
+// var settings = cli.New()
 
 func NewRootCmd(out io.Writer, args []string, logSetup func(bool)) (*cobra.Command, error) {
+	settings := cli.New()
 	actionConfig := action.NewConfiguration()
-	cmd, err := newRootCmdWithConfig(actionConfig, out, args, logSetup)
+	cmd, err := newRootCmdWithConfig(settings, actionConfig, out, args, logSetup)
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +115,7 @@ func NewRootCmd(out io.Writer, args []string, logSetup func(bool)) (*cobra.Comma
 			log.Fatal(err)
 		}
 		if helmDriver == "memory" {
-			loadReleasesInMemory(actionConfig)
+			loadReleasesInMemory(settings, actionConfig)
 		}
 		actionConfig.SetHookOutputFunc(hookOutputWriter)
 	})
@@ -147,7 +148,7 @@ func configureColorOutput(settings *cli.EnvSettings) {
 	}
 }
 
-func newRootCmdWithConfig(actionConfig *action.Configuration, out io.Writer, args []string, logSetup func(bool)) (*cobra.Command, error) {
+func newRootCmdWithConfig(settings *cli.EnvSettings, actionConfig *action.Configuration, out io.Writer, args []string, logSetup func(bool)) (*cobra.Command, error) {
 	cmd := &cobra.Command{
 		Use:          "helm",
 		Short:        "The Helm package manager for Kubernetes.",
@@ -257,7 +258,7 @@ func newRootCmdWithConfig(actionConfig *action.Configuration, out io.Writer, arg
 		log.Fatal(err)
 	}
 
-	registryClient, err := newDefaultRegistryClient(false, "", "")
+	registryClient, err := newDefaultRegistryClient(settings, false, "", "")
 	if err != nil {
 		return nil, err
 	}
@@ -267,30 +268,30 @@ func newRootCmdWithConfig(actionConfig *action.Configuration, out io.Writer, arg
 	cmd.AddCommand(
 		// chart commands
 		newCreateCmd(out),
-		newDependencyCmd(actionConfig, out),
-		newPullCmd(actionConfig, out),
-		newShowCmd(actionConfig, out),
-		newLintCmd(out),
-		newPackageCmd(out),
-		newRepoCmd(out),
-		newSearchCmd(out),
+		newDependencyCmd(settings, actionConfig, out),
+		newPullCmd(settings, actionConfig, out),
+		newShowCmd(settings, actionConfig, out),
+		newLintCmd(settings, out),
+		newPackageCmd(settings, out),
+		newRepoCmd(settings, out),
+		newSearchCmd(settings, out),
 		newVerifyCmd(out),
 
 		// release commands
-		newGetCmd(actionConfig, out),
-		newHistoryCmd(actionConfig, out),
-		newInstallCmd(actionConfig, out),
-		newListCmd(actionConfig, out),
-		newReleaseTestCmd(actionConfig, out),
-		newRollbackCmd(actionConfig, out),
-		newStatusCmd(actionConfig, out),
-		newTemplateCmd(actionConfig, out),
-		newUninstallCmd(actionConfig, out),
-		newUpgradeCmd(actionConfig, out),
+		newGetCmd(settings, actionConfig, out),
+		newHistoryCmd(settings, actionConfig, out),
+		newInstallCmd(settings, actionConfig, out),
+		newListCmd(settings, actionConfig, out),
+		newReleaseTestCmd(settings, actionConfig, out),
+		newRollbackCmd(settings, actionConfig, out),
+		newStatusCmd(settings, actionConfig, out),
+		newTemplateCmd(settings, actionConfig, out),
+		newUninstallCmd(settings, actionConfig, out),
+		newUpgradeCmd(settings, actionConfig, out),
 
 		newCompletionCmd(out),
-		newEnvCmd(out),
-		newPluginCmd(out),
+		newEnvCmd(settings, out),
+		newPluginCmd(settings, out),
 		newVersionCmd(out),
 
 		// Hidden documentation generator command: 'helm docs'
@@ -299,11 +300,11 @@ func newRootCmdWithConfig(actionConfig *action.Configuration, out io.Writer, arg
 
 	cmd.AddCommand(
 		newRegistryCmd(actionConfig, out),
-		newPushCmd(actionConfig, out),
+		newPushCmd(settings, actionConfig, out),
 	)
 
 	// Find and add CLI plugins
-	loadCLIPlugins(cmd, out)
+	loadCLIPlugins(settings, cmd, out)
 
 	// Check for expired repositories
 	checkForExpiredRepos(settings.RepositoryConfig)
@@ -313,7 +314,7 @@ func newRootCmdWithConfig(actionConfig *action.Configuration, out io.Writer, arg
 
 // This function loads releases into the memory storage if the
 // environment variable is properly set.
-func loadReleasesInMemory(actionConfig *action.Configuration) {
+func loadReleasesInMemory(settings *cli.EnvSettings, actionConfig *action.Configuration) {
 	filePaths := strings.Split(os.Getenv("HELM_MEMORY_DRIVER_DATA"), ":")
 	if len(filePaths) == 0 {
 		return
@@ -403,23 +404,23 @@ func checkForExpiredRepos(repofile string) {
 }
 
 func newRegistryClient(
-	certFile, keyFile, caFile string, insecureSkipTLSVerify, plainHTTP bool, username, password string,
+	settings *cli.EnvSettings, certFile, keyFile, caFile string, insecureSkipTLSverify, plainHTTP bool, username, password string,
 ) (*registry.Client, error) {
-	if certFile != "" && keyFile != "" || caFile != "" || insecureSkipTLSVerify {
-		registryClient, err := newRegistryClientWithTLS(certFile, keyFile, caFile, insecureSkipTLSVerify, username, password)
+	if certFile != "" && keyFile != "" || caFile != "" || insecureSkipTLSverify {
+		registryClient, err := newRegistryClientWithTLS(settings, certFile, keyFile, caFile, insecureSkipTLSverify, username, password)
 		if err != nil {
 			return nil, err
 		}
 		return registryClient, nil
 	}
-	registryClient, err := newDefaultRegistryClient(plainHTTP, username, password)
+	registryClient, err := newDefaultRegistryClient(settings, plainHTTP, username, password)
 	if err != nil {
 		return nil, err
 	}
 	return registryClient, nil
 }
 
-func newDefaultRegistryClient(plainHTTP bool, username, password string) (*registry.Client, error) {
+func newDefaultRegistryClient(settings *cli.EnvSettings, plainHTTP bool, username, password string) (*registry.Client, error) {
 	opts := []registry.ClientOption{
 		registry.ClientOptDebug(settings.Debug),
 		registry.ClientOptEnableCache(true),
@@ -440,7 +441,7 @@ func newDefaultRegistryClient(plainHTTP bool, username, password string) (*regis
 }
 
 func newRegistryClientWithTLS(
-	certFile, keyFile, caFile string, insecureSkipTLSVerify bool, username, password string,
+	settings *cli.EnvSettings, certFile, keyFile, caFile string, insecureSkipTLSverify bool, username, password string,
 ) (*registry.Client, error) {
 	tlsConf, err := tlsutil.NewTLSConfig(
 		tlsutil.WithInsecureSkipVerify(insecureSkipTLSVerify),

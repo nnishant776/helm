@@ -18,11 +18,15 @@ package cmd
 
 import (
 	"testing"
+
+	"helm.sh/helm/v4/pkg/cli"
 )
 
 func TestSearchRepositoriesCmd(t *testing.T) {
 	repoFile := "testdata/helmhome/helm/repositories.yaml"
 	repoCache := "testdata/helmhome/helm/repository"
+
+	settings := cli.New()
 
 	tests := []cmdTestCase{{
 		name:   "search for 'alpine', expect one match with latest stable version",
@@ -95,7 +99,7 @@ func TestSearchRepositoriesCmd(t *testing.T) {
 		tests[i].cmd += " --repository-config " + repoFile
 		tests[i].cmd += " --repository-cache " + repoCache
 	}
-	runTestCmd(t, tests)
+	runTestCmd(t, settings, tests)
 }
 
 func TestSearchRepoOutputCompletion(t *testing.T) {

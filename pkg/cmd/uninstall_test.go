@@ -19,11 +19,13 @@ package cmd
 import (
 	"testing"
 
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/release/common"
 	release "helm.sh/helm/v4/pkg/release/v1"
 )
 
 func TestUninstall(t *testing.T) {
+	settings := cli.New()
 	tests := []cmdTestCase{
 		{
 			name:   "basic uninstall",
@@ -80,7 +82,7 @@ func TestUninstall(t *testing.T) {
 			wantError: true,
 		},
 	}
-	runTestCmd(t, tests)
+	runTestCmd(t, settings, tests)
 }
 
 func TestUninstallCompletion(t *testing.T) {

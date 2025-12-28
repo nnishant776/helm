@@ -28,6 +28,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"helm.sh/helm/v4/pkg/cli"
 	release "helm.sh/helm/v4/pkg/release/v1"
 )
 
@@ -84,6 +85,7 @@ func TestManuallyProcessArgs(t *testing.T) {
 }
 
 func TestLoadCLIPlugins(t *testing.T) {
+	settings := cli.New()
 	settings.PluginsDirectory = "testdata/helmhome/helm/plugins"
 	settings.RepositoryConfig = "testdata/helmhome/helm/repositories.yaml"
 	settings.RepositoryCache = "testdata/helmhome/helm/repository"
@@ -92,7 +94,7 @@ func TestLoadCLIPlugins(t *testing.T) {
 		out bytes.Buffer
 		cmd cobra.Command
 	)
-	loadCLIPlugins(&cmd, &out)
+	loadCLIPlugins(settings, &cmd, &out)
 
 	fullEnvOutput := strings.Join([]string{
 		"HELM_PLUGIN_NAME=fullenv",
@@ -162,6 +164,7 @@ func TestLoadCLIPlugins(t *testing.T) {
 }
 
 func TestLoadPluginsWithSpace(t *testing.T) {
+	settings := cli.New()
 	settings.PluginsDirectory = "testdata/helm home with space/helm/plugins"
 	settings.RepositoryConfig = "testdata/helm home with space/helm/repositories.yaml"
 	settings.RepositoryCache = "testdata/helm home with space/helm/repository"
@@ -170,7 +173,7 @@ func TestLoadPluginsWithSpace(t *testing.T) {
 		out bytes.Buffer
 		cmd cobra.Command
 	)
-	loadCLIPlugins(&cmd, &out)
+	loadCLIPlugins(settings, &cmd, &out)
 
 	envs := strings.Join([]string{
 		"fullenv",
@@ -242,6 +245,7 @@ type staticCompletionDetails struct {
 }
 
 func TestLoadCLIPluginsForCompletion(t *testing.T) {
+	settings := cli.New()
 	settings.PluginsDirectory = "testdata/helmhome/helm/plugins"
 
 	var out bytes.Buffer
@@ -249,7 +253,7 @@ func TestLoadCLIPluginsForCompletion(t *testing.T) {
 	cmd := &cobra.Command{
 		Use: "completion",
 	}
-	loadCLIPlugins(cmd, &out)
+	loadCLIPlugins(settings, cmd, &out)
 
 	tests := []staticCompletionDetails{
 		{"args", []string{}, []string{}, []staticCompletionDetails{}},
@@ -302,6 +306,8 @@ func checkCommand(t *testing.T, plugins []*cobra.Command, tests []staticCompleti
 }
 
 func TestPluginDynamicCompletion(t *testing.T) {
+	settings := cli.New()
+	settings.PluginsDirectory = "testdata/helmhome/helm/plugins"
 	tests := []cmdTestCase{{
 		name:   "completion for plugin",
 		cmd:    "__complete args ''",
@@ -329,12 +335,12 @@ func TestPluginDynamicCompletion(t *testing.T) {
 		rels:   []*release.Release{},
 	}}
 	for _, test := range tests {
-		settings.PluginsDirectory = "testdata/helmhome/helm/plugins"
-		runTestCmd(t, []cmdTestCase{test})
+		runTestCmd(t, settings, []cmdTestCase{test})
 	}
 }
 
 func TestLoadCLIPlugins_HelmNoPlugins(t *testing.T) {
+	settings := cli.New()
 	settings.PluginsDirectory = "testdata/helmhome/helm/plugins"
 	settings.RepositoryConfig = "testdata/helmhome/helm/repository"
 
@@ -342,7 +348,7 @@ func TestLoadCLIPlugins_HelmNoPlugins(t *testing.T) {
 
 	out := bytes.NewBuffer(nil)
 	cmd := &cobra.Command{}
-	loadCLIPlugins(cmd, out)
+	loadCLIPlugins(settings, cmd, out)
 	plugins := cmd.Commands()
 
 	if len(plugins) != 0 {
@@ -351,6 +357,8 @@ func TestLoadCLIPlugins_HelmNoPlugins(t *testing.T) {
 }
 
 func TestPluginCmdsCompletion(t *testing.T) {
+	settings := cli.New()
+	settings.PluginsDirectory = "testdata/helmhome/helm/plugins"
 	tests := []cmdTestCase{{
 		name:   "completion for plugin update",
 		cmd:    "__complete plugin update ''",
@@ -398,8 +406,7 @@ func TestPluginCmdsCompletion(t *testing.T) {
 		rels:   []*release.Release{},
 	}, {}}
 	for _, test := range tests {
-		settings.PluginsDirectory = "testdata/helmhome/helm/plugins"
-		runTestCmd(t, []cmdTestCase{test})
+		runTestCmd(t, settings, []cmdTestCase{test})
 	}
 }
 

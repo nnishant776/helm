@@ -25,12 +25,14 @@ import (
 
 	"helm.sh/helm/v4/pkg/action"
 	chart "helm.sh/helm/v4/pkg/chart/v2"
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/release/common"
 	release "helm.sh/helm/v4/pkg/release/v1"
 )
 
 func outputFlagCompletionTest(t *testing.T, cmdName string) {
 	t.Helper()
+	settings := cli.New()
 	releasesMockWithStatus := func(info *release.Info, hooks ...*release.Hook) []*release.Release {
 		info.LastDeployed = time.Unix(1452902400, 0).UTC()
 		return []*release.Release{{
@@ -96,7 +98,7 @@ func outputFlagCompletionTest(t *testing.T, cmdName string) {
 			Status: common.StatusDeployed,
 		}),
 	}}
-	runTestCmd(t, tests)
+	runTestCmd(t, settings, tests)
 }
 
 func TestPostRendererFlagSetOnce(t *testing.T) {

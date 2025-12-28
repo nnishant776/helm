@@ -21,12 +21,14 @@ import (
 	"time"
 
 	chart "helm.sh/helm/v4/pkg/chart/v2"
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/release/common"
 	release "helm.sh/helm/v4/pkg/release/v1"
 )
 
 func TestListCmd(t *testing.T) {
 	defaultNamespace := "default"
+	settings := cli.New()
 
 	sampleTimeSeconds := int64(1452902400)
 	timestamp1 := time.Unix(sampleTimeSeconds+1, 0).UTC()
@@ -235,7 +237,7 @@ func TestListCmd(t *testing.T) {
 		golden: "output/list-namespace.txt",
 		rels:   releaseFixture,
 	}}
-	runTestCmd(t, tests)
+	runTestCmd(t, settings, tests)
 }
 
 func TestListOutputCompletion(t *testing.T) {

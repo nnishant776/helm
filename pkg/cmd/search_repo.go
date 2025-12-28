@@ -31,6 +31,7 @@ import (
 	"github.com/gosuri/uitable"
 	"github.com/spf13/cobra"
 
+	"helm.sh/helm/v4/pkg/cli"
 	"helm.sh/helm/v4/pkg/cli/output"
 	"helm.sh/helm/v4/pkg/cmd/search"
 	"helm.sh/helm/v4/pkg/helmpath"
@@ -75,7 +76,7 @@ type searchRepoOptions struct {
 	failOnNoResult bool
 }
 
-func newSearchRepoCmd(out io.Writer) *cobra.Command {
+func newSearchRepoCmd(settings *cli.EnvSettings, out io.Writer) *cobra.Command {
 	o := &searchRepoOptions{}
 
 	cmd := &cobra.Command{
@@ -268,7 +269,7 @@ func (r *repoSearchWriter) encodeByFormat(out io.Writer, format output.Format) e
 }
 
 // Provides the list of charts that are part of the specified repo, and that starts with 'prefix'.
-func compListChartsOfRepo(repoName string, prefix string) []string {
+func compListChartsOfRepo(settings *cli.EnvSettings, repoName string, prefix string) []string {
 	var charts []string
 
 	path := filepath.Join(settings.RepositoryCache, helmpath.CacheChartsFile(repoName))
@@ -306,7 +307,7 @@ func compListChartsOfRepo(repoName string, prefix string) []string {
 
 // Provide dynamic auto-completion for commands that operate on charts (e.g., helm show)
 // When true, the includeFiles argument indicates that completion should include local files (e.g., local charts)
-func compListCharts(toComplete string, includeFiles bool) ([]string, cobra.ShellCompDirective) {
+func compListCharts(settings *cli.EnvSettings, toComplete string, includeFiles bool) ([]string, cobra.ShellCompDirective) {
 	cobra.CompDebugln(fmt.Sprintf("compListCharts with toComplete %s", toComplete), settings.Debug)
 
 	noSpace := false
@@ -314,7 +315,7 @@ func compListCharts(toComplete string, includeFiles bool) ([]string, cobra.Shell
 	var completions []string
 
 	// First check completions for repos
-	repos := compListRepos("", nil)
+	repos := compListRepos(settings, "", nil)
 	for _, repoInfo := range repos {
 		// Split name from description
 		repoInfo := strings.Split(repoInfo, "\t")
@@ -327,7 +328,7 @@ func compListCharts(toComplete string, includeFiles bool) ([]string, cobra.Shell
 		if strings.HasPrefix(toComplete, repoWithSlash) {
 			// Must complete with charts within the specified repo.
 			// Don't filter on toComplete to allow for shell fuzzy matching
-			completions = append(completions, compListChartsOfRepo(repo, "")...)
+			completions = append(completions, compListChartsOfRepo(settings, repo, "")...)
 			noSpace = false
 			break
 		} else if strings.HasPrefix(repo, toComplete) {
